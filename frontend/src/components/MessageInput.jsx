@@ -1,5 +1,6 @@
 import { useRef, useState } from "react";
 import { useChatStore } from "../store/useChatStore";
+import { useAuthStore } from "../store/useAuthStore";
 import { Image, Send, X, Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -8,7 +9,28 @@ const MessageInput = () => {
   const [imagePreview, setImagePreview] = useState(null);
   const [isSending, setIsSending] = useState(false);
   const fileInputRef = useRef(null);
-  const { sendMessage } = useChatStore();
+  const { sendMessage, selectedUser } = useChatStore();
+  const { socket } = useAuthStore();
+  const typingTimeoutRef = useRef(null);
+
+  const handleInputChange = (e) => {
+    setText(e.target.value);
+
+    if (!socket) return;
+
+    if (e.target.value.trim().length > 0) {
+      socket.emit("typing", { receiverId: selectedUser._id });
+
+      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+
+      typingTimeoutRef.current = setTimeout(() => {
+        socket.emit("stopTyping", { receiverId: selectedUser._id });
+      }, 2000);
+    } else {
+      socket.emit("stopTyping", { receiverId: selectedUser._id });
+      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+    }
+  };
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -86,6 +108,13 @@ const MessageInput = () => {
 
     try {
       setIsSending(true);
+      
+      // Stop typing indicator when message is sent
+      if (socket) {
+        socket.emit("stopTyping", { receiverId: selectedUser._id });
+        if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+      }
+
       await sendMessage({
         text: text.trim(),
         image: imagePreview,
@@ -116,7 +145,7 @@ const MessageInput = () => {
             <button
               onClick={removeImage}
               className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-error hover:bg-error/80
-              flex items-center justify-center transition-colors"
+              flex items-center justify-center transition-colors shadow-sm"
               type="button"
             >
               <X className="size-3 text-white" />
@@ -129,10 +158,10 @@ const MessageInput = () => {
         <div className="flex-1 flex gap-2">
           <input
             type="text"
-            className="w-full input input-bordered rounded-lg input-sm sm:input-md"
+            className="w-full input input-bordered rounded-full input-sm sm:input-md glass-input shadow-sm"
             placeholder="Type a message..."
             value={text}
-            onChange={(e) => setText(e.target.value)}
+            onChange={handleInputChange}
             disabled={isSending}
           />
           <input
@@ -145,8 +174,8 @@ const MessageInput = () => {
 
           <button
             type="button"
-            className={`flex btn btn-circle btn-sm sm:btn-md
-                     ${imagePreview ? "btn-success" : "btn-ghost"}`}
+            className={`flex btn btn-circle btn-sm sm:btn-md btn-premium
+                     ${imagePreview ? "text-emerald-500" : "text-base-content/40 hover:text-base-content/80"}`}
             onClick={() => fileInputRef.current?.click()}
             title="Attach Image"
             disabled={isSending}
@@ -156,7 +185,7 @@ const MessageInput = () => {
         </div>
         <button
           type="submit"
-          className="btn btn-primary btn-sm sm:btn-md btn-circle"
+          className="btn btn-primary btn-sm sm:btn-md btn-circle btn-premium shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
           disabled={(!text.trim() && !imagePreview) || isSending}
         >
           {isSending ? (

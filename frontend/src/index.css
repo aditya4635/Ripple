@@ -36,15 +36,15 @@
 @layer components {
   /* Custom Scrollbar */
   .custom-scrollbar::-webkit-scrollbar {
-    width: 8px;
+    width: 6px;
   }
 
   .custom-scrollbar::-webkit-scrollbar-track {
-    @apply bg-base-200 rounded-lg;
+    background: transparent;
   }
 
   .custom-scrollbar::-webkit-scrollbar-thumb {
-    @apply bg-base-content/20 rounded-lg hover:bg-base-content/30;
+    @apply bg-base-content/10 rounded-full hover:bg-base-content/20;
     transition: background-color 0.2s;
   }
 
@@ -53,34 +53,41 @@
     @apply transition-all duration-300 ease-in-out;
   }
 
-  /* Glass Effect */
+  /* Glass Effects */
   .glass-effect {
-    @apply backdrop-blur-md bg-base-100/80 border border-base-content/10;
+    @apply backdrop-blur-xl bg-base-100/70 border-b border-base-content/5;
+  }
+
+  .glass-header {
+    @apply backdrop-blur-lg bg-base-100/80 border-b border-base-content/5 sticky top-0 z-40;
+  }
+
+  .glass-input {
+    @apply backdrop-blur-md bg-base-200/50 border border-base-content/10 focus:bg-base-200/80 transition-all duration-300;
+  }
+
+  /* Message Bubbles */
+  .message-bubble-sent {
+    @apply bg-gradient-to-br from-primary to-secondary text-primary-content rounded-2xl rounded-tr-none shadow-sm;
+  }
+
+  .message-bubble-received {
+    @apply bg-base-200/80 backdrop-blur-sm text-base-content rounded-2xl rounded-tl-none shadow-sm border border-base-content/5;
   }
 
   /* Hover Lift Effect */
   .hover-lift {
-    @apply hover:-translate-y-1 hover:shadow-lg transition-all duration-200;
+    @apply hover:-translate-y-0.5 hover:shadow-md transition-all duration-200;
   }
 
   /* Focus Ring */
   .focus-ring {
-    @apply focus:outline-none focus:ring-2 focus:ring-primary focus:ring-opacity-50 focus:ring-offset-2 focus:ring-offset-base-100;
+    @apply focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2 focus:ring-offset-base-100;
   }
 
   /* Button Enhancements */
-  .btn {
-    @apply smooth-transition hover:scale-105 active:scale-95;
-  }
-
-  /* Input Enhancements */
-  .input {
-    @apply smooth-transition focus-ring;
-  }
-
-  /* Card Enhancements */
-  .card {
-    @apply smooth-transition hover:shadow-xl;
+  .btn-premium {
+    @apply active:scale-95 transition-all duration-200 shadow-sm hover:shadow-md;
   }
 }
 
@@ -90,61 +97,31 @@
     @apply bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent;
   }
 
-  /* Cursor Utilities */
-  .cursor-grab-active {
-    cursor: grab;
-  }
-
-  .cursor-grab-active:active {
-    cursor: grabbing;
-  }
-
-  .cursor-pointer-hover {
-    cursor: pointer;
-    @apply hover:scale-105 active:scale-95 transition-transform;
-  }
-
   /* Animation Classes */
   .animate-fade-in {
-    animation: fadeIn 0.3s ease-in;
+    animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .animate-slide-up {
-    animation: slideUp 0.3s ease-out;
+    animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
-  .animate-slide-in {
-    animation: slideIn 0.3s ease-out;
+  .animate-scale-in {
+    animation: scaleIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
   }
 }
 
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 @keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-@keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateX(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
 }
