@@ -5,10 +5,146 @@
 @tailwind utilities;
 
 @layer base {
+  * {
+    @apply transition-colors duration-200;
+    cursor: default;
+  }
+  
   html {
     scroll-behavior: smooth;
   }
+  
   body {
     font-family: 'Inter', sans-serif;
+    @apply antialiased;
+  }
+
+  /* Better cursor styles */
+  a, button, [role="button"], label[for], input[type="file"] {
+    cursor: pointer;
+  }
+
+  input[type="text"], input[type="email"], input[type="password"], textarea {
+    cursor: text;
+  }
+
+  input[disabled], button[disabled] {
+    cursor: not-allowed;
+  }
+}
+
+@layer components {
+  /* Custom Scrollbar */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-track {
+    @apply bg-base-200 rounded-lg;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    @apply bg-base-content/20 rounded-lg hover:bg-base-content/30;
+    transition: background-color 0.2s;
+  }
+
+  /* Smooth Transitions */
+  .smooth-transition {
+    @apply transition-all duration-300 ease-in-out;
+  }
+
+  /* Glass Effect */
+  .glass-effect {
+    @apply backdrop-blur-md bg-base-100/80 border border-base-content/10;
+  }
+
+  /* Hover Lift Effect */
+  .hover-lift {
+    @apply hover:-translate-y-1 hover:shadow-lg transition-all duration-200;
+  }
+
+  /* Focus Ring */
+  .focus-ring {
+    @apply focus:outline-none focus:ring-2 focus:ring-primary focus:ring-opacity-50 focus:ring-offset-2 focus:ring-offset-base-100;
+  }
+
+  /* Button Enhancements */
+  .btn {
+    @apply smooth-transition hover:scale-105 active:scale-95;
+  }
+
+  /* Input Enhancements */
+  .input {
+    @apply smooth-transition focus-ring;
+  }
+
+  /* Card Enhancements */
+  .card {
+    @apply smooth-transition hover:shadow-xl;
+  }
+}
+
+@layer utilities {
+  /* Text Gradient */
+  .text-gradient {
+    @apply bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent;
+  }
+
+  /* Cursor Utilities */
+  .cursor-grab-active {
+    cursor: grab;
+  }
+
+  .cursor-grab-active:active {
+    cursor: grabbing;
+  }
+
+  .cursor-pointer-hover {
+    cursor: pointer;
+    @apply hover:scale-105 active:scale-95 transition-transform;
+  }
+
+  /* Animation Classes */
+  .animate-fade-in {
+    animation: fadeIn 0.3s ease-in;
+  }
+
+  .animate-slide-up {
+    animation: slideUp 0.3s ease-out;
+  }
+
+  .animate-slide-in {
+    animation: slideIn 0.3s ease-out;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
   }
 }

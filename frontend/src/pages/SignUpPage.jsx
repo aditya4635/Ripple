@@ -6,7 +6,7 @@ import AuthImagePattern from "../components/AuthImagePattern";
 import toast from "react-hot-toast";
 import MouseFollowerSprinkles from "../components/MouseFollowerLight";
 import AuthErrorAlert from "../components/AuthErrorAlert";
-import { GoogleLogin } from "@react-oauth/google";
+import GoogleSignInButton from "../components/GoogleSignInButton";
 
 const SignUpPage = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -45,7 +45,7 @@ const SignUpPage = () => {
   };
 
   const handleGoogleSuccess = async (credentialResponse) => {
-    const success = await googleLogin(credentialResponse.credential);
+    const success = await googleLogin(credentialResponse.code);
     if (success) {
       navigate("/");
     }
@@ -152,16 +152,15 @@ const SignUpPage = () => {
             </button>
           </form>
 
-          <div className="divider text-base-content/40">OR</div>
+          {/* Divider */}
+          <div className="divider text-base-content/60 my-6">OR CONTINUE WITH</div>
 
-          <div className="flex justify-center">
-            <GoogleLogin
-              onSuccess={handleGoogleSuccess}
-              onError={() => console.log("Signup Failed")}
-              size="large"
-              width="384px"
-              theme="filled_blue"
-            />
+          {/* Google Sign Up */}
+          <div className="space-y-3">
+            <GoogleSignInButton onSuccess={handleGoogleSuccess} mode="signup" />
+            <p className="text-xs text-center text-base-content/60">
+              Quick and secure registration with your Google account
+            </p>
           </div>
 
           <div className="text-center">

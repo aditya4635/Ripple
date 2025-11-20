@@ -8,15 +8,15 @@ const Navbar = () => {
 
   return (
     <header
-      className="bg-base-100/80 border-b border-base-300 fixed w-full top-0 z-40 
-    backdrop-blur-lg transition-all duration-300"
+      className="glass-effect fixed w-full top-0 z-40 border-b border-base-content/10
+    shadow-sm"
     >
       <div className="container mx-auto px-4 h-16 max-w-7xl">
         <div className="flex items-center justify-between h-full">
           <div className="flex items-center gap-8">
-            <Link to="/" className="flex items-center gap-2.5 hover:opacity-80 transition-all">
-              <div className="size-9 rounded-lg bg-primary/10 flex items-center justify-center">
-                <MessageSquare className="w-5 h-5 text-primary" />
+            <Link to="/" className="flex items-center gap-2.5 hover:opacity-80 smooth-transition group">
+              <div className="size-9 rounded-lg bg-gradient-to-br from-primary to-secondary flex items-center justify-center group-hover:scale-110 smooth-transition shadow-lg">
+                <MessageSquare className="w-5 h-5 text-white" />
               </div>
               <h1 className="text-lg font-bold tracking-tight"><RainbowHover>Ripple</RainbowHover></h1>
             </Link>
@@ -25,10 +25,7 @@ const Navbar = () => {
           <div className="flex items-center gap-2">
             <Link
               to={"/settings"}
-              className={`
-              btn btn-sm btn-ghost gap-2 transition-colors
-              
-              `}
+              className="btn btn-sm btn-ghost gap-2 hover:bg-primary/10 smooth-transition"
             >
               <RainbowHover><Settings className="w-4 h-4" /></RainbowHover>
               <span className="hidden sm:inline font-medium"><RainbowHover>Settings</RainbowHover></span>
@@ -36,12 +33,12 @@ const Navbar = () => {
 
             {authUser && (
               <>
-                <Link to={"/profile"} className={`btn btn-sm btn-ghost gap-2`}>
+                <Link to={"/profile"} className="btn btn-sm btn-ghost gap-2 hover:bg-primary/10 smooth-transition">
                   <User className="size-5" />
                   <span className="hidden sm:inline font-medium">Profile</span>
                 </Link>
 
-                <button className="flex gap-2 items-center btn btn-sm btn-ghost" onClick={logout}>
+                <button className="flex gap-2 items-center btn btn-sm btn-ghost hover:bg-error/10 hover:text-error smooth-transition" onClick={logout}>
                   <LogOut className="size-5" />
                   <span className="hidden sm:inline font-medium">Logout</span>
                 </button>
