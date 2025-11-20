@@ -9,7 +9,7 @@ export default {
         sans: ['Inter', 'sans-serif'],
       },
       colors: {
-        primary: "oklch(var(--p))", // Use daisyUI variables but allow custom overrides if needed
+        primary: "oklch(var(--p))",
         secondary: "oklch(var(--s))",
         accent: "oklch(var(--a))",
       },
@@ -20,24 +20,22 @@ export default {
     themes: [
       {
         light: {
-          ...require("daisyui/src/theming/themes")["light"],
-          primary: "#4f46e5", // Indigo-600
-          secondary: "#818cf8", // Indigo-400
-          accent: "#f472b6", // Pink-400
-          neutral: "#1f2937", // Gray-800
+          primary: "#4f46e5",
+          secondary: "#818cf8",
+          accent: "#f472b6",
+          neutral: "#1f2937",
           "base-100": "#ffffff",
           "base-200": "#f3f4f6",
           "base-300": "#e5e7eb",
         },
         dark: {
-          ...require("daisyui/src/theming/themes")["dark"],
-          primary: "#6366f1", // Indigo-500
-          secondary: "#a5b4fc", // Indigo-300
-          accent: "#f472b6", // Pink-400
-          neutral: "#111827", // Gray-900
-          "base-100": "#0f172a", // Slate-900 (Rich dark background)
-          "base-200": "#1e293b", // Slate-800
-          "base-300": "#334155", // Slate-700
+          primary: "#6366f1",
+          secondary: "#a5b4fc",
+          accent: "#f472b6",
+          neutral: "#111827",
+          "base-100": "#0f172a",
+          "base-200": "#1e293b",
+          "base-300": "#334155",
         },
       },
       "cupcake",
