@@ -9,10 +9,30 @@ export const useAuthStore = create((set, get) => ({
   authUser: null,
   isSigningUp: false,
   isLoggingIn: false,
+  isVerifying: false,
   isUpdatingProfile: false,
   isCheckingAuth: true,
   onlineUsers: [],
   socket: null,
+  authError: null, // Added error state
+  errorTimeoutId: null, // To track timeout
+
+  setAuthError: (message) => {
+    const { errorTimeoutId } = get();
+    if (errorTimeoutId) clearTimeout(errorTimeoutId);
+
+    const newTimeoutId = setTimeout(() => {
+      set({ authError: null });
+    }, 5000); // Auto-dismiss after 5 seconds
+
+    set({ authError: message, errorTimeoutId: newTimeoutId });
+  },
+
+  clearAuthError: () => {
+    const { errorTimeoutId } = get();
+    if (errorTimeoutId) clearTimeout(errorTimeoutId);
+    set({ authError: null, errorTimeoutId: null });
+  },
 
   checkAuth: async () => {
     try {
@@ -29,29 +49,84 @@ export const useAuthStore = create((set, get) => ({
   },
 
   signup: async (data) => {
-    set({ isSigningUp: true });
+    set({ isSigningUp: true, authError: null });
     try {
       const res = await axiosInstance.post("/auth/signup", data);
-      set({ authUser: res.data });
-      toast.success("Account created successfully");
-      get().connectSocket();
+      toast.success(res.data.message || "OTP sent to your email");
+      return { success: true, email: res.data.email };
     } catch (error) {
-      toast.error(error.response.data.message);
+      const errorMessage = error.response?.data?.message || "Signup failed";
+      toast.error(errorMessage);
+      get().setAuthError(errorMessage);
+      return { success: false };
     } finally {
       set({ isSigningUp: false });
     }
   },
 
+  verifyEmail: async (data) => {
+    set({ isVerifying: true, authError: null });
+    try {
+      const res = await axiosInstance.post("/auth/verify-email", data);
+      set({ authUser: res.data });
+      toast.success("Email verified successfully");
+      get().connectSocket();
+      return true;
+    } catch (error) {
+      const errorMessage = error.response?.data?.message || "Verification failed";
+      toast.error(errorMessage);
+      get().setAuthError(errorMessage);
+      return false;
+    } finally {
+      set({ isVerifying: false });
+    }
+  },
+
+  googleLogin: async (token) => {
+    set({ isLoggingIn: true, authError: null });
+    try {
+      const res = await axiosInstance.post("/auth/google", { token });
+      set({ authUser: res.data });
+      toast.success("Logged in with Google");
+      get().connectSocket();
+      return true;
+    } catch (error) {
+      const errorMessage = error.response?.data?.message || "Google login failed";
+      toast.error(errorMessage);
+      get().setAuthError(errorMessage);
+      return false;
+    } finally {
+      set({ isLoggingIn: false });
+    }
+  },
+
   login: async (data) => {
-    set({ isLoggingIn: true });
+    set({ isLoggingIn: true, authError: null });
     try {
       const res = await axiosInstance.post("/auth/login", data);
+      
+      // Check if user needs to verify email
+      if (res.data.isVerified === false) {
+        toast.info(res.data.message);
+        return { success: false, needsVerification: true, email: res.data.email };
+      }
+      
       set({ authUser: res.data });
       toast.success("Logged in successfully");
-
       get().connectSocket();
+      return { success: true };
     } catch (error) {
-      toast.error(error.response.data.message);
+      console.log("Login error:", error);
+      const errorMessage = error.response?.data?.message || error.message || "Login failed";
+      
+      // Check if the error response includes verification info
+      if (error.response?.data?.isVerified === false) {
+        return { success: false, needsVerification: true, email: error.response.data.email };
+      }
+      
+      toast.error(errorMessage);
+      get().setAuthError(errorMessage);
+      return { success: false };
     } finally {
       set({ isLoggingIn: false });
     }

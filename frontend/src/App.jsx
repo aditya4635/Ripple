@@ -5,18 +5,23 @@ import SignUpPage from "./pages/SignUpPage";
 import LoginPage from "./pages/LoginPage";
 import SettingsPage from "./pages/SettingsPage";
 import ProfilePage from "./pages/ProfilePage";
+import OTPPage from "./pages/OTPPage";
 
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { useAuthStore } from "./store/useAuthStore";
 import { useThemeStore } from "./store/useThemeStore";
 import { useEffect } from "react";
 
 import { Loader } from "lucide-react";
 import { Toaster } from "react-hot-toast";
+import { AnimatePresence } from "framer-motion";
+import PageTransition from "./components/PageTransition";
+import { GoogleOAuthProvider } from "@react-oauth/google";
 
 const App = () => {
   const { authUser, checkAuth, isCheckingAuth, onlineUsers } = useAuthStore();
   const { theme } = useThemeStore();
+  const location = useLocation();
 
   console.log({ onlineUsers });
 
@@ -34,19 +39,24 @@ const App = () => {
     );
 
   return (
-    <div data-theme={theme}>
-      <Navbar />
+    <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID || ""}>
+      <div data-theme={theme} className="font-sans text-base-content bg-base-100 transition-colors duration-300">
+        <Navbar />
 
-      <Routes>
-        <Route path="/" element={authUser ? <HomePage /> : <Navigate to="/login" />} />
-        <Route path="/signup" element={!authUser ? <SignUpPage /> : <Navigate to="/" />} />
-        <Route path="/login" element={!authUser ? <LoginPage /> : <Navigate to="/" />} />
-        <Route path="/settings" element={<SettingsPage />} />
-        <Route path="/profile" element={authUser ? <ProfilePage /> : <Navigate to="/login" />} />
-      </Routes>
+        <AnimatePresence mode="wait">
+          <Routes location={location} key={location.pathname}>
+            <Route path="/" element={authUser ? <PageTransition><HomePage /></PageTransition> : <Navigate to="/login" />} />
+            <Route path="/signup" element={!authUser ? <PageTransition><SignUpPage /></PageTransition> : <Navigate to="/" />} />
+            <Route path="/login" element={!authUser ? <PageTransition><LoginPage /></PageTransition> : <Navigate to="/" />} />
+            <Route path="/otp" element={!authUser ? <PageTransition><OTPPage /></PageTransition> : <Navigate to="/" />} />
+            <Route path="/settings" element={<PageTransition><SettingsPage /></PageTransition>} />
+            <Route path="/profile" element={authUser ? <PageTransition><ProfilePage /></PageTransition> : <Navigate to="/login" />} />
+          </Routes>
+        </AnimatePresence>
 
-      <Toaster />
-    </div>
+        <Toaster />
+      </div>
+    </GoogleOAuthProvider>
   );
 };
 export default App;

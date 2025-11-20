@@ -1,11 +1,13 @@
 import { useChatStore } from "../store/useChatStore";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import ChatHeader from "./ChatHeader";
 import MessageInput from "./MessageInput";
 import MessageSkeleton from "./skeletons/MessageSkeleton";
 import { useAuthStore } from "../store/useAuthStore";
 import { formatMessageTime } from "../lib/utils";
+import { getAvatarUrl } from "../lib/avatarUtils";
+import ImageViewerModal from "./ImageViewerModal";
 
 const ChatContainer = () => {
   const {
@@ -18,6 +20,13 @@ const ChatContainer = () => {
   } = useChatStore();
   const { authUser } = useAuthStore();
   const messageEndRef = useRef(null);
+  const [showImageViewer, setShowImageViewer] = useState(false);
+  const [viewerImage, setViewerImage] = useState("");
+
+  const handleImageClick = (imageUrl) => {
+    setViewerImage(imageUrl);
+    setShowImageViewer(true);
+  };
 
   useEffect(() => {
     getMessages(selectedUser._id);
@@ -44,39 +53,45 @@ const ChatContainer = () => {
   }
 
   return (
-    <div className="flex-1 flex flex-col overflow-auto">
+    <div className="flex-1 flex flex-col overflow-auto bg-base-100/50">
       <ChatHeader />
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
         {messages.map((message) => (
           <div
             key={message._id}
             className={`chat ${message.senderId === authUser._id ? "chat-end" : "chat-start"}`}
             ref={messageEndRef}
           >
-            <div className=" chat-image avatar">
-              <div className="size-10 rounded-full border">
+            <div className="chat-image avatar">
+              <div className="size-10 rounded-full border border-base-300 overflow-hidden bg-base-200">
                 <img
                   src={
                     message.senderId === authUser._id
-                      ? authUser.profilePic || "/avatar.png"
-                      : selectedUser.profilePic || "/avatar.png"
+                      ? getAvatarUrl(authUser)
+                      : getAvatarUrl(selectedUser)
                   }
                   alt="profile pic"
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    console.log("Avatar failed to load:", e.target.src);
+                    e.target.style.display = 'block';
+                  }}
                 />
               </div>
             </div>
             <div className="chat-header mb-1">
-              <time className="text-xs opacity-50 ml-1">
+              <time className="text-xs opacity-50 ml-1 font-medium">
                 {formatMessageTime(message.createdAt)}
               </time>
             </div>
-            <div className="chat-bubble flex flex-col">
+            <div className={`chat-bubble flex flex-col ${message.senderId === authUser._id ? "bg-primary text-primary-content" : "bg-base-200 text-base-content"}`}>
               {message.image && (
                 <img
                   src={message.image}
                   alt="Attachment"
-                  className="sm:max-w-[200px] rounded-md mb-2"
+                  className="sm:max-w-[200px] rounded-md mb-2 border border-base-300 cursor-pointer hover:opacity-90 transition-opacity"
+                  onClick={() => handleImageClick(message.image)}
                 />
               )}
               {message.text && <p>{message.text}</p>}
@@ -86,6 +101,14 @@ const ChatContainer = () => {
       </div>
 
       <MessageInput />
+
+      {/* Image Viewer Modal */}
+      <ImageViewerModal
+        isOpen={showImageViewer}
+        onClose={() => setShowImageViewer(false)}
+        imageUrl={viewerImage}
+        userName={selectedUser.fullName}
+      />
     </div>
   );
 };
