@@ -82,6 +82,20 @@ export const useAuthStore = create((set, get) => ({
     }
   },
 
+  resendOTP: async (email) => {
+    set({ authError: null });
+    try {
+      const res = await axiosInstance.post("/auth/resend-otp", { email });
+      toast.success(res.data.message || "OTP resent to your email");
+      return true;
+    } catch (error) {
+      const errorMessage = error.response?.data?.message || "Failed to resend OTP";
+      toast.error(errorMessage);
+      get().setAuthError(errorMessage);
+      return false;
+    }
+  },
+
   googleLogin: async (token) => {
     set({ isLoggingIn: true, authError: null });
     try {

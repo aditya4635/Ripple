@@ -5,6 +5,7 @@ import cloudinary from "../lib/cloudinary.js";
 import nodemailer from "nodemailer";
 import { OAuth2Client } from "google-auth-library";
 import axios from "axios";
+import { addPendingSignup, getPendingSignup, removePendingSignup, hasPendingSignup, canResendOTP } from "../lib/pendingSignups.js";
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
@@ -37,9 +38,14 @@ export const signup = async (req, res) => {
       return res.status(400).json({ message: "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character" });
     }
 
-    const user = await User.findOne({ email });
+    // Check if user already exists in database
+    const existingUser = await User.findOne({ email });
+    if (existingUser) return res.status(400).json({ message: "Email already exists" });
 
-    if (user) return res.status(400).json({ message: "Email already exists" });
+    // Check if there's already a pending signup for this email
+    if (hasPendingSignup(email)) {
+      return res.status(400).json({ message: "Signup already in progress. Please check your email for OTP or wait before trying again." });
+    }
 
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
@@ -47,16 +53,14 @@ export const signup = async (req, res) => {
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     const otpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
-    const newUser = new User({
+    // Store in pending signups (NOT in database yet)
+    addPendingSignup(email, {
       fullName,
       email,
       password: hashedPassword,
       otp,
       otpExpires,
-      isVerified: false,
     });
-
-    await newUser.save();
 
     // Send OTP Email
     try {
@@ -72,8 +76,8 @@ export const signup = async (req, res) => {
       res.status(201).json({ message: "OTP sent to your email", email });
     } catch (emailError) {
       console.error("❌ Error sending email:", emailError.message);
-      // Delete the user since email failed
-      await User.findByIdAndDelete(newUser._id);
+      // Remove from pending signups since email failed
+      removePendingSignup(email);
       return res.status(500).json({ 
         message: "Failed to send verification email. Please check your email address or try again later." 
       });
@@ -88,27 +92,37 @@ export const signup = async (req, res) => {
 export const verifyEmail = async (req, res) => {
   const { email, otp } = req.body;
   try {
-    const user = await User.findOne({ email });
+    // Check pending signups first
+    const pendingUser = getPendingSignup(email);
+    
+    if (!pendingUser) {
+      return res.status(400).json({ message: "No pending signup found for this email" });
+    }
 
-    if (!user) return res.status(400).json({ message: "User not found" });
-    if (user.isVerified) return res.status(400).json({ message: "Email already verified" });
-
-    if (user.otp !== otp || user.otpExpires < Date.now()) {
+    if (pendingUser.otp !== otp || pendingUser.otpExpires < Date.now()) {
       return res.status(400).json({ message: "Invalid or expired OTP" });
     }
 
-    user.isVerified = true;
-    user.otp = undefined;
-    user.otpExpires = undefined;
-    await user.save();
+    // Create user in database NOW (after verification)
+    const newUser = new User({
+      fullName: pendingUser.fullName,
+      email: pendingUser.email,
+      password: pendingUser.password,
+      isVerified: true, // User is verified from the start
+    });
 
-    generateToken(user._id, res);
+    await newUser.save();
+    
+    // Remove from pending signups
+    removePendingSignup(email);
+
+    generateToken(newUser._id, res);
 
     res.status(200).json({
-      _id: user._id,
-      fullName: user.fullName,
-      email: user.email,
-      profilePic: user.profilePic,
+      _id: newUser._id,
+      fullName: newUser.fullName,
+      email: newUser.email,
+      profilePic: newUser.profilePic,
     });
   } catch (error) {
     console.log("Error in verifyEmail controller", error.message);
@@ -172,31 +186,7 @@ export const login = async (req, res) => {
       return res.status(400).json({ message: "Invalid password" });
     }
 
-    if (!user.isVerified) {
-       // Resend OTP if not verified
-       const otp = Math.floor(100000 + Math.random() * 900000).toString();
-       user.otp = otp;
-       user.otpExpires = new Date(Date.now() + 10 * 60 * 1000);
-       await user.save();
-
-       try {
-         const mailOptions = {
-          from: process.env.EMAIL_USER,
-          to: email,
-          subject: "Verify your email",
-          text: `Your OTP is ${otp}. It expires in 10 minutes.`,
-        };
-    
-        await transporter.sendMail(mailOptions);
-        console.log("✅ OTP email resent successfully to:", email);
-        return res.status(400).json({ message: "Email not verified. OTP resent.", isVerified: false, email });
-       } catch (emailError) {
-         console.error("❌ Error sending email:", emailError.message);
-         return res.status(500).json({ 
-           message: "Failed to send verification email. Please try again later." 
-         });
-       }
-    }
+    // Users in database are always verified now, so no need to check
 
     generateToken(user._id, res);
 
@@ -252,6 +242,61 @@ export const updateProfile = async (req, res) => {
   } catch (error) {
     console.log("error in update profile:", error);
     res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const resendOTP = async (req, res) => {
+  const { email } = req.body;
+  try {
+    if (!email) {
+      return res.status(400).json({ message: "Email is required" });
+    }
+
+    // Check rate limiting
+    const rateLimitCheck = canResendOTP(email);
+    if (!rateLimitCheck.canResend) {
+      return res.status(429).json({ 
+        message: rateLimitCheck.reason,
+        remainingSeconds: rateLimitCheck.remainingSeconds 
+      });
+    }
+
+    // Check pending signups
+    const pendingUser = getPendingSignup(email);
+    
+    if (!pendingUser) {
+      return res.status(400).json({ message: "No pending signup found for this email" });
+    }
+
+    // Generate new OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    pendingUser.otp = otp;
+    pendingUser.otpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+    
+    // Update pending signup with new OTP and timestamp
+    addPendingSignup(email, pendingUser);
+
+    // Send OTP Email
+    try {
+      const mailOptions = {
+        from: process.env.EMAIL_USER,
+        to: email,
+        subject: "Verify your email - New OTP",
+        text: `Your new OTP is ${otp}. It expires in 10 minutes.`,
+      };
+
+      await transporter.sendMail(mailOptions);
+      console.log("✅ OTP resent successfully to:", email);
+      res.status(200).json({ message: "OTP resent to your email" });
+    } catch (emailError) {
+      console.error("❌ Error sending email:", emailError.message);
+      return res.status(500).json({ 
+        message: "Failed to send verification email. Please try again later." 
+      });
+    }
+  } catch (error) {
+    console.log("Error in resendOTP controller", error.message);
+    res.status(500).json({ message: "Internal Server Error" });
   }
 };
 

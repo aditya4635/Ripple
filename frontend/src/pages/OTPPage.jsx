@@ -2,13 +2,15 @@ import { useState, useEffect } from "react";
 import { useAuthStore } from "../store/useAuthStore";
 import { useNavigate, useLocation } from "react-router-dom";
 import AuthImagePattern from "../components/AuthImagePattern";
-import { Loader2, Mail, MessageSquare } from "lucide-react";
+import { Loader2, Mail, MessageSquare, RefreshCw } from "lucide-react";
 import MouseFollowerLight from "../components/MouseFollowerLight";
 import AuthErrorAlert from "../components/AuthErrorAlert";
 
 const OTPPage = () => {
   const [otp, setOtp] = useState("");
-  const { verifyEmail, isVerifying, authError, clearAuthError } = useAuthStore();
+  const [countdown, setCountdown] = useState(60);
+  const [canResend, setCanResend] = useState(false);
+  const { verifyEmail, resendOTP, isVerifying, authError, clearAuthError } = useAuthStore();
   const navigate = useNavigate();
   const location = useLocation();
   const email = location.state?.email;
@@ -20,11 +22,29 @@ const OTPPage = () => {
     }
   }, [clearAuthError, email, navigate]);
 
+  // Countdown timer
+  useEffect(() => {
+    if (countdown > 0 && !canResend) {
+      const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
+      return () => clearTimeout(timer);
+    } else if (countdown === 0) {
+      setCanResend(true);
+    }
+  }, [countdown, canResend]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (otp.length === 6) {
       const success = await verifyEmail({ email, otp });
       if (success) navigate("/");
+    }
+  };
+
+  const handleResendOTP = async () => {
+    const success = await resendOTP(email);
+    if (success) {
+      setCountdown(60);
+      setCanResend(false);
     }
   };
 
@@ -81,6 +101,18 @@ const OTPPage = () => {
                 ) : (
                   "Verify Email"
                 )}
+              </button>
+
+              <div className="divider">OR</div>
+
+              <button
+                type="button"
+                onClick={handleResendOTP}
+                className="btn btn-outline w-full"
+                disabled={!canResend}
+              >
+                <RefreshCw className={`size-5 ${!canResend ? "" : "hover:rotate-180 transition-transform duration-500"}`} />
+                {canResend ? "Resend OTP" : `Resend in ${countdown}s`}
               </button>
             </form>
           </div>
