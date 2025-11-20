@@ -59,22 +59,25 @@ export const signup = async (req, res) => {
     await newUser.save();
 
     // Send OTP Email
-    const mailOptions = {
-      from: process.env.EMAIL_USER,
-      to: email,
-      subject: "Verify your email",
-      text: `Your OTP is ${otp}. It expires in 10 minutes.`,
-    };
+    try {
+      const mailOptions = {
+        from: process.env.EMAIL_USER,
+        to: email,
+        subject: "Verify your email",
+        text: `Your OTP is ${otp}. It expires in 10 minutes.`,
+      };
 
-    transporter.sendMail(mailOptions, (error, info) => {
-      if (error) {
-        console.log("Error sending email:", error);
-      } else {
-        console.log("Email sent:", info.response);
-      }
-    });
-
-    res.status(201).json({ message: "OTP sent to your email", email });
+      await transporter.sendMail(mailOptions);
+      console.log("✅ OTP email sent successfully to:", email);
+      res.status(201).json({ message: "OTP sent to your email", email });
+    } catch (emailError) {
+      console.error("❌ Error sending email:", emailError.message);
+      // Delete the user since email failed
+      await User.findByIdAndDelete(newUser._id);
+      return res.status(500).json({ 
+        message: "Failed to send verification email. Please check your email address or try again later." 
+      });
+    }
 
   } catch (error) {
     console.log("Error in signup controller", error.message);
@@ -176,18 +179,23 @@ export const login = async (req, res) => {
        user.otpExpires = new Date(Date.now() + 10 * 60 * 1000);
        await user.save();
 
-       const mailOptions = {
-        from: process.env.EMAIL_USER,
-        to: email,
-        subject: "Verify your email",
-        text: `Your OTP is ${otp}. It expires in 10 minutes.`,
-      };
-  
-      transporter.sendMail(mailOptions, (error, info) => {
-        if (error) console.log("Error sending email:", error);
-      });
-
-      return res.status(400).json({ message: "Email not verified. OTP resent.", isVerified: false, email });
+       try {
+         const mailOptions = {
+          from: process.env.EMAIL_USER,
+          to: email,
+          subject: "Verify your email",
+          text: `Your OTP is ${otp}. It expires in 10 minutes.`,
+        };
+    
+        await transporter.sendMail(mailOptions);
+        console.log("✅ OTP email resent successfully to:", email);
+        return res.status(400).json({ message: "Email not verified. OTP resent.", isVerified: false, email });
+       } catch (emailError) {
+         console.error("❌ Error sending email:", emailError.message);
+         return res.status(500).json({ 
+           message: "Failed to send verification email. Please try again later." 
+         });
+       }
     }
 
     generateToken(user._id, res);
