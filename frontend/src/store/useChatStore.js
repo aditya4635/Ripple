@@ -9,6 +9,8 @@ export const useChatStore = create((set, get) => ({
   selectedUser: null,
   isUsersLoading: false,
   isMessagesLoading: false,
+  messageListener: null,
+  unreadListener: null,
 
   getUsers: async () => {
     set({ isUsersLoading: true });
@@ -49,19 +51,70 @@ export const useChatStore = create((set, get) => ({
 
     const socket = useAuthStore.getState().socket;
 
-    socket.on("newMessage", (newMessage) => {
+    // Optimize: Remove existing listener if any to prevent duplicates
+    const existingListener = get().messageListener;
+    if (existingListener) {
+      socket.off("newMessage", existingListener);
+    }
+
+    const messageListener = (newMessage) => {
       const isMessageSentFromSelectedUser = newMessage.senderId === selectedUser._id;
       if (!isMessageSentFromSelectedUser) return;
 
       set({
         messages: [...get().messages, newMessage],
       });
-    });
+    };
+
+    socket.on("newMessage", messageListener);
+    set({ messageListener });
   },
 
   unsubscribeFromMessages: () => {
     const socket = useAuthStore.getState().socket;
-    socket.off("newMessage");
+    const messageListener = get().messageListener;
+    if (messageListener) {
+      socket.off("newMessage", messageListener);
+      set({ messageListener: null });
+    }
+  },
+
+  subscribeToUnreadMessages: () => {
+    const socket = useAuthStore.getState().socket;
+
+    // Optimize: Remove existing listener if any
+    const existingListener = get().unreadListener;
+    if (existingListener) {
+      socket.off("newMessage", existingListener);
+    }
+
+    const unreadListener = (newMessage) => {
+      const { selectedUser, users } = get();
+      const isMessageSentFromSelectedUser = selectedUser?._id === newMessage.senderId;
+
+      if (isMessageSentFromSelectedUser) return;
+
+      set({
+        users: users.map((user) => {
+          if (user._id === newMessage.senderId) {
+            return { ...user, unreadCount: (user.unreadCount || 0) + 1 };
+          }
+          return user;
+        }),
+      });
+    };
+
+    socket.on("newMessage", unreadListener);
+    set({ unreadListener });
+  },
+
+  unsubscribeFromUnreadMessages: () => {
+    const socket = useAuthStore.getState().socket;
+    const unreadListener = get().unreadListener;
+    if (unreadListener) {
+      socket.off("newMessage", unreadListener);
+      set({ unreadListener: null });
+    }
   },
 
   setSelectedUser: (selectedUser) => set({ selectedUser }),

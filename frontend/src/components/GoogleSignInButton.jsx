@@ -9,7 +9,6 @@ const GoogleSignInButton = ({ onSuccess, mode = "signin" }) => {
     onError: () => {
       toast.error(`Google ${mode === "signin" ? "Sign-In" : "Sign-Up"} failed`);
     },
-    flow: 'auth-code',
   });
 
   return (

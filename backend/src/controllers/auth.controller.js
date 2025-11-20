@@ -4,6 +4,7 @@ import bcrypt from "bcryptjs";
 import cloudinary from "../lib/cloudinary.js";
 import nodemailer from "nodemailer";
 import { OAuth2Client } from "google-auth-library";
+import axios from "axios";
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
@@ -115,11 +116,8 @@ export const verifyEmail = async (req, res) => {
 export const googleLogin = async (req, res) => {
   const { token } = req.body;
   try {
-    const ticket = await client.verifyIdToken({
-      idToken: token,
-      audience: process.env.GOOGLE_CLIENT_ID,
-    });
-    const { name, email, picture } = ticket.getPayload();
+    const response = await axios.get(`https://www.googleapis.com/oauth2/v3/userinfo?access_token=${token}`);
+    const { name, email, picture } = response.data;
 
     let user = await User.findOne({ email });
 

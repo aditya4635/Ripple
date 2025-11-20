@@ -6,14 +6,23 @@ import { getAvatarUrl } from "../lib/avatarUtils";
 import SidebarSkeleton from "./skeletons/SidebarSkeleton";
 
 const Sidebar = () => {
-  const { getUsers, users, selectedUser, setSelectedUser, isUsersLoading } = useChatStore();
+  const { getUsers, users, selectedUser, setSelectedUser, isUsersLoading, subscribeToUnreadMessages, unsubscribeFromUnreadMessages, markMessagesAsRead } = useChatStore();
 
   const { onlineUsers } = useAuthStore();
   const [showOnlineOnly, setShowOnlineOnly] = useState(false);
 
   useEffect(() => {
     getUsers();
-  }, [getUsers]);
+    subscribeToUnreadMessages();
+    return () => unsubscribeFromUnreadMessages();
+  }, [getUsers, subscribeToUnreadMessages, unsubscribeFromUnreadMessages]);
+
+  const handleUserSelect = (user) => {
+    setSelectedUser(user);
+    if (user.unreadCount > 0) {
+      markMessagesAsRead(user._id);
+    }
+  };
 
   const filteredUsers = showOnlineOnly
     ? users.filter((user) => onlineUsers.includes(user._id))
@@ -46,7 +55,7 @@ const Sidebar = () => {
         {filteredUsers.map((user) => (
           <button
             key={user._id}
-            onClick={() => setSelectedUser(user)}
+            onClick={() => handleUserSelect(user)}
             className={`
               w-full p-3 flex items-center gap-3 rounded-xl
               hover:bg-base-200 transition-all duration-200
@@ -68,8 +77,15 @@ const Sidebar = () => {
             </div>
 
             {/* User info - only visible on larger screens */}
-            <div className="hidden lg:block text-left min-w-0">
-              <div className="font-medium truncate text-sm">{user.fullName}</div>
+            <div className="hidden lg:block text-left min-w-0 flex-1">
+              <div className="flex justify-between items-center">
+                <div className="font-medium truncate text-sm">{user.fullName}</div>
+                {user.unreadCount > 0 && (
+                  <span className="badge badge-sm badge-primary ml-2">
+                    {user.unreadCount}
+                  </span>
+                )}
+              </div>
               <div className="text-xs text-zinc-400">
                 {onlineUsers.includes(user._id) ? "Online" : "Offline"}
               </div>

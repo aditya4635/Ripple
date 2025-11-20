@@ -45,7 +45,7 @@ const SignUpPage = () => {
   };
 
   const handleGoogleSuccess = async (credentialResponse) => {
-    const success = await googleLogin(credentialResponse.code);
+    const success = await googleLogin(credentialResponse.access_token);
     if (success) {
       navigate("/");
     }
