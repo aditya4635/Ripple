@@ -41,11 +41,26 @@ export const useChatStore = create((set, get) => ({
       set({ isMessagesLoading: false });
     }
   },
-  sendMessage: async (messageData) => {
+  sendMessage: async (messageData, receiverId = null) => {
     const { selectedUser, messages } = get();
+    // Use provided receiverId or fallback to selectedUser._id
+    const targetUserId = receiverId || selectedUser?._id;
+
+    if (!targetUserId) {
+        console.error("No target user ID for sending message");
+        return;
+    }
+
     try {
-      const res = await axiosInstance.post(`/messages/send/${selectedUser._id}`, messageData);
-      set({ messages: [...messages, res.data] });
+      const res = await axiosInstance.post(`/messages/send/${targetUserId}`, messageData);
+      
+      // Only update local state if we sent it to the currently selected user
+      if (targetUserId === selectedUser?._id) {
+          set({ messages: [...messages, res.data] });
+      } else {
+          // Optional: Show a toast or notification that message was forwarded/sent
+          toast.success("Message sent");
+      }
     } catch (error) {
       toast.error(error.response.data.message);
     }
@@ -225,4 +240,58 @@ export const useChatStore = create((set, get) => ({
   },
 
   setSelectedUser: (selectedUser) => set({ selectedUser }),
+
+  // Selection State & Actions
+  isSelectionMode: false,
+  selectedMessages: [],
+
+  toggleMessageSelection: (messageId) => {
+    const { selectedMessages } = get();
+    const isSelected = selectedMessages.includes(messageId);
+    
+    let newSelectedMessages;
+    if (isSelected) {
+      newSelectedMessages = selectedMessages.filter(id => id !== messageId);
+    } else {
+      newSelectedMessages = [...selectedMessages, messageId];
+    }
+
+    set({ 
+      selectedMessages: newSelectedMessages,
+      isSelectionMode: newSelectedMessages.length > 0 
+    });
+  },
+
+  clearSelection: () => {
+    set({ selectedMessages: [], isSelectionMode: false });
+  },
+
+  deleteMultipleMessages: async (type) => {
+    const { selectedMessages, deleteMessage } = get();
+    
+    // We can either create a new bulk delete API or reuse deleteMessage loop
+    // Reusing loop for now as backend doesn't support bulk delete yet
+    // Ideally, backend should have a bulk delete endpoint
+    
+    try {
+      await Promise.all(selectedMessages.map(id => deleteMessage(id, type)));
+      set({ selectedMessages: [], isSelectionMode: false });
+      // toast.success("Messages deleted"); // deleteMessage already shows toast
+    } catch (error) {
+      console.error("Failed to delete messages", error);
+    }
+  },
+
+  clearChatHistory: async () => {
+    const { selectedUser } = get();
+    if (!selectedUser) return;
+
+    try {
+      await axiosInstance.delete(`/messages/history/${selectedUser._id}`);
+      set({ messages: [] });
+      toast.success("Chat history cleared");
+    } catch (error) {
+      toast.error(error.response.data.message);
+    }
+  },
 }));

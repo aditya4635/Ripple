@@ -157,3 +157,32 @@ export const deleteMessage = async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 };
+export const deleteChatHistory = async (req, res) => {
+  try {
+    const { id: userToChatId } = req.params;
+    const myId = req.user._id;
+
+    // Find all messages between the two users
+    const messages = await Message.find({
+      $or: [
+        { senderId: myId, receiverId: userToChatId },
+        { senderId: userToChatId, receiverId: myId },
+      ],
+    });
+
+    // Add myId to deletedBy array for each message
+    await Promise.all(
+      messages.map(async (message) => {
+        if (!message.deletedBy.includes(myId)) {
+          message.deletedBy.push(myId);
+          await message.save();
+        }
+      })
+    );
+
+    res.status(200).json({ message: "Chat history cleared successfully" });
+  } catch (error) {
+    console.log("Error in deleteChatHistory controller: ", error.message);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};

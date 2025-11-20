@@ -9,6 +9,7 @@ const MessageInput = () => {
   const [imagePreview, setImagePreview] = useState(null);
   const [isSending, setIsSending] = useState(false);
   const fileInputRef = useRef(null);
+  const inputRef = useRef(null);
   const { sendMessage, selectedUser } = useChatStore();
   const { socket } = useAuthStore();
   const typingTimeoutRef = useRef(null);
@@ -124,6 +125,11 @@ const MessageInput = () => {
       setText("");
       setImagePreview(null);
       if (fileInputRef.current) fileInputRef.current.value = "";
+      
+      // Refocus input
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 0);
     } catch (error) {
       console.error("Failed to send message:", error);
       toast.error("Failed to send message");
@@ -158,6 +164,7 @@ const MessageInput = () => {
         <div className="flex-1 flex gap-2">
           <input
             type="text"
+            ref={inputRef}
             className="w-full input input-bordered rounded-full input-sm sm:input-md glass-input shadow-sm"
             placeholder="Type a message..."
             value={text}

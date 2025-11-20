@@ -1,5 +1,5 @@
 import { useChatStore } from "../store/useChatStore";
-import { X } from "lucide-react";
+import { X, Trash2 } from "lucide-react";
 import { useAuthStore } from "../store/useAuthStore";
 import { getAvatarUrl } from "../lib/avatarUtils";
 import { useState } from "react";
@@ -7,7 +7,7 @@ import UserProfileModal from "./UserProfileModal";
 import ImageViewerModal from "./ImageViewerModal";
 
 const ChatHeader = () => {
-  const { selectedUser, setSelectedUser, typingUsers } = useChatStore();
+  const { selectedUser, setSelectedUser, typingUsers, clearChatHistory } = useChatStore();
   const { onlineUsers } = useAuthStore();
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [showImageViewer, setShowImageViewer] = useState(false);
@@ -45,11 +45,33 @@ const ChatHeader = () => {
           </div>
 
           {/* Close button */}
-          <button onClick={() => setSelectedUser(null)} className="hover:bg-base-200/50 p-2 rounded-full transition-colors hover:rotate-90 duration-300">
-            <X className="text-base-content/70" />
-          </button>
+          <div className="flex items-center gap-2">
+             <button onClick={() => document.getElementById('clear_chat_modal').showModal()} className="hover:bg-base-200/50 p-2 rounded-full transition-colors duration-300" title="Clear Chat">
+              <Trash2 className="size-5 text-base-content/70 hover:text-error" />
+            </button>
+            <button onClick={() => setSelectedUser(null)} className="hover:bg-base-200/50 p-2 rounded-full transition-colors hover:rotate-90 duration-300">
+              <X className="text-base-content/70" />
+            </button>
+          </div>
         </div>
       </div>
+
+      {/* Clear Chat Confirmation Modal */}
+      <dialog id="clear_chat_modal" className="modal">
+        <div className="modal-box">
+          <h3 className="font-bold text-lg">Clear Chat History?</h3>
+          <p className="py-4">Are you sure you want to delete all messages with {selectedUser.fullName}? This action cannot be undone.</p>
+          <div className="modal-action">
+            <form method="dialog">
+              <button className="btn btn-ghost mr-2">Cancel</button>
+              <button onClick={clearChatHistory} className="btn btn-error">Clear Chat</button>
+            </form>
+          </div>
+        </div>
+        <form method="dialog" className="modal-backdrop">
+          <button>close</button>
+        </form>
+      </dialog>
 
       {/* Modals */}
       <UserProfileModal
