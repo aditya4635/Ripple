@@ -163,9 +163,40 @@ export const useAuthStore = create((set, get) => ({
       const res = await axiosInstance.put("/auth/update-profile", data);
       set({ authUser: res.data });
       toast.success("Profile updated successfully");
+      return true;
     } catch (error) {
       console.log("error in update profile:", error);
-      toast.error(error.response.data.message);
+      const errorMessage = error.response?.data?.message || error.message || "Failed to update profile";
+      toast.error(errorMessage);
+      return false;
+    } finally {
+      set({ isUpdatingProfile: false });
+    }
+  },
+
+  initiateEmailChange: async (newEmail) => {
+    try {
+      const res = await axiosInstance.post("/auth/initiate-email-change", { newEmail });
+      toast.success(res.data.message || "OTP sent to your new email");
+      return true;
+    } catch (error) {
+      console.log("error in initiate email change:", error);
+      toast.error(error.response?.data?.message || "Failed to send OTP");
+      return false;
+    }
+  },
+
+  verifyEmailChange: async (otp) => {
+    set({ isUpdatingProfile: true });
+    try {
+      const res = await axiosInstance.post("/auth/verify-email-change", { otp });
+      set({ authUser: res.data });
+      toast.success("Email updated successfully");
+      return true;
+    } catch (error) {
+      console.log("error in verify email change:", error);
+      toast.error(error.response?.data?.message || "Failed to verify OTP");
+      return false;
     } finally {
       set({ isUpdatingProfile: false });
     }

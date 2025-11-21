@@ -214,33 +214,138 @@ export const logout = (req, res) => {
 
 export const updateProfile = async (req, res) => {
   try {
-    const { profilePic } = req.body;
+    const { profilePic, fullName } = req.body;
     const userId = req.user._id;
 
-    // Allow empty string to remove profile picture
-    if (profilePic === "") {
-      const updatedUser = await User.findByIdAndUpdate(
-        userId,
-        { profilePic: "" },
-        { new: true }
-      );
-      return res.status(200).json(updatedUser);
+    const updateData = {};
+
+    // Handle fullName update
+    if (fullName !== undefined) {
+      if (!fullName.trim()) {
+        return res.status(400).json({ message: "Full name cannot be empty" });
+      }
+      updateData.fullName = fullName.trim();
     }
 
-    if (!profilePic) {
-      return res.status(400).json({ message: "Profile pic is required" });
+    // Handle profile picture update
+    if (profilePic !== undefined) {
+      // Allow empty string to remove profile picture
+      if (profilePic === "") {
+        // Delete old Cloudinary image if exists
+        try {
+          const user = await User.findById(userId);
+          if (user.profilePic && user.profilePic.includes('cloudinary.com')) {
+            const urlParts = user.profilePic.split('/');
+            const publicIdWithExtension = urlParts.slice(-2).join('/');
+            const publicId = publicIdWithExtension.substring(0, publicIdWithExtension.lastIndexOf('.'));
+            await cloudinary.uploader.destroy(publicId);
+            console.log('✅ Old profile picture deleted from Cloudinary');
+          }
+        } catch (deleteError) {
+          console.error('⚠️ Error deleting old image:', deleteError.message);
+          // Continue even if deletion fails
+        }
+        
+        updateData.profilePic = "";
+      } else {
+        // Validate image type
+        const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
+        const mimeMatch = profilePic.match(/^data:(image\/[a-z]+);base64,/);
+        
+        if (!mimeMatch) {
+          return res.status(400).json({ 
+            message: "Invalid image format. Please upload a valid image file." 
+          });
+        }
+
+        const mimeType = mimeMatch[1];
+        if (!validTypes.includes(mimeType)) {
+          return res.status(400).json({ 
+            message: "Invalid file type. Please upload an image (JPEG, PNG, WebP, or GIF)" 
+          });
+        }
+
+        // Validate file size (base64 size estimation)
+        const base64Data = profilePic.split(',')[1];
+        if (!base64Data) {
+          return res.status(400).json({ message: "Invalid image data" });
+        }
+
+        const sizeInBytes = (base64Data.length * 3) / 4;
+        const sizeInMB = sizeInBytes / (1024 * 1024);
+        
+        if (sizeInMB > 5) {
+          return res.status(400).json({ 
+            message: `File too large (${sizeInMB.toFixed(2)}MB). Maximum size is 5MB` 
+          });
+        }
+
+        try {
+          // Delete old Cloudinary image before uploading new one
+          const user = await User.findById(userId);
+          if (user.profilePic && user.profilePic.includes('cloudinary.com')) {
+            try {
+              const urlParts = user.profilePic.split('/');
+              const publicIdWithExtension = urlParts.slice(-2).join('/');
+              const publicId = publicIdWithExtension.substring(0, publicIdWithExtension.lastIndexOf('.'));
+              await cloudinary.uploader.destroy(publicId);
+              console.log('✅ Old profile picture deleted from Cloudinary');
+            } catch (deleteError) {
+              console.error('⚠️ Error deleting old image:', deleteError.message);
+              // Continue with upload even if deletion fails
+            }
+          }
+
+          // Upload with optimization
+          const uploadResponse = await cloudinary.uploader.upload(profilePic, {
+            folder: "ripple_profiles",
+            transformation: [
+              { width: 400, height: 400, crop: "fill", gravity: "face" },
+              { quality: "auto:best" },
+              { fetch_format: "auto" }
+            ],
+            resource_type: "image",
+            allowed_formats: ['jpg', 'png', 'webp', 'gif']
+          });
+          
+          updateData.profilePic = uploadResponse.secure_url;
+          console.log('✅ Profile picture uploaded to Cloudinary successfully');
+        } catch (uploadError) {
+          console.error("❌ Cloudinary upload error:", uploadError);
+          
+          // Provide specific error messages
+          if (uploadError.http_code === 413) {
+            return res.status(400).json({ 
+              message: "Image file is too large. Please use a smaller image." 
+            });
+          }
+          
+          if (uploadError.message?.includes('timeout')) {
+            return res.status(408).json({ 
+              message: "Upload timed out. Please check your connection and try again." 
+            });
+          }
+          
+          return res.status(500).json({ 
+            message: `Failed to upload image: ${uploadError.message || 'Unknown error'}` 
+          });
+        }
+      }
     }
 
-    const uploadResponse = await cloudinary.uploader.upload(profilePic);
+    if (Object.keys(updateData).length === 0) {
+      return res.status(400).json({ message: "No fields to update" });
+    }
+
     const updatedUser = await User.findByIdAndUpdate(
       userId,
-      { profilePic: uploadResponse.secure_url },
+      updateData,
       { new: true }
     );
 
     res.status(200).json(updatedUser);
   } catch (error) {
-    console.log("error in update profile:", error);
+    console.log("❌ Error in update profile:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };
@@ -305,6 +410,120 @@ export const checkAuth = (req, res) => {
     res.status(200).json(req.user);
   } catch (error) {
     console.log("Error in checkAuth controller", error.message);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+export const initiateEmailChange = async (req, res) => {
+  const { newEmail } = req.body;
+  try {
+    if (!newEmail) {
+      return res.status(400).json({ message: "New email is required" });
+    }
+
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    if (!emailRegex.test(newEmail)) {
+      return res.status(400).json({ message: "Invalid email format" });
+    }
+
+    const userId = req.user._id;
+    const currentEmail = req.user.email;
+
+    // Check if new email is the same as current email
+    if (newEmail.toLowerCase() === currentEmail.toLowerCase()) {
+      return res.status(400).json({ message: "New email is the same as current email" });
+    }
+
+    // Check if new email is already in use by another user
+    const existingUser = await User.findOne({ email: newEmail });
+    if (existingUser && existingUser._id.toString() !== userId.toString()) {
+      return res.status(400).json({ message: "Email already in use" });
+    }
+
+    // Generate OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const otpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+    // Save pending email and OTP to database
+    await User.findByIdAndUpdate(userId, {
+      pendingEmail: newEmail,
+      pendingEmailOTP: otp,
+      pendingEmailOTPExpires: otpExpires,
+    });
+
+    // Send OTP Email to new email address
+    try {
+      const mailOptions = {
+        from: process.env.EMAIL_USER,
+        to: newEmail,
+        subject: "Verify your new email address",
+        text: `Your OTP to verify your new email address is ${otp}. It expires in 10 minutes.`,
+      };
+
+      await transporter.sendMail(mailOptions);
+      console.log("✅ Email change OTP sent successfully to:", newEmail);
+      res.status(200).json({ message: "OTP sent to your new email address" });
+    } catch (emailError) {
+      console.error("❌ Error sending email:", emailError.message);
+      // Clear pending fields since email failed
+      await User.findByIdAndUpdate(userId, {
+        pendingEmail: undefined,
+        pendingEmailOTP: undefined,
+        pendingEmailOTPExpires: undefined,
+      });
+      return res.status(500).json({ 
+        message: "Failed to send verification email. Please check the email address or try again later." 
+      });
+    }
+  } catch (error) {
+    console.log("Error in initiateEmailChange controller", error.message);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+export const verifyEmailChange = async (req, res) => {
+  const { otp } = req.body;
+  try {
+    if (!otp) {
+      return res.status(400).json({ message: "OTP is required" });
+    }
+
+    const userId = req.user._id;
+    const user = await User.findById(userId);
+
+    if (!user.pendingEmail) {
+      return res.status(400).json({ message: "No pending email change found" });
+    }
+
+    if (user.pendingEmailOTP !== otp) {
+      return res.status(400).json({ message: "Invalid OTP" });
+    }
+
+    if (user.pendingEmailOTPExpires < Date.now()) {
+      return res.status(400).json({ message: "OTP expired" });
+    }
+
+    // Update email and clear pending fields in database
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      {
+        email: user.pendingEmail,
+        pendingEmail: undefined,
+        pendingEmailOTP: undefined,
+        pendingEmailOTPExpires: undefined,
+      },
+      { new: true }
+    );
+
+    res.status(200).json({
+      _id: updatedUser._id,
+      fullName: updatedUser.fullName,
+      email: updatedUser.email,
+      profilePic: updatedUser.profilePic,
+      createdAt: updatedUser.createdAt,
+    });
+  } catch (error) {
+    console.log("Error in verifyEmailChange controller", error.message);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };

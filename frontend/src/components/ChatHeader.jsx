@@ -26,7 +26,7 @@ const ChatHeader = () => {
           <div className="flex items-center gap-3">
             {/* Avatar */}
             <div className="avatar cursor-pointer" onClick={() => setShowProfileModal(true)}>
-              <div className="size-10 rounded-full relative border border-base-300 hover:ring-2 hover:ring-primary/20 transition-all shadow-sm">
+              <div className="size-10 rounded-full relative border border-base-content/10 hover:ring-2 hover:ring-primary/30 transition-all shadow-md hover:shadow-lg">
                 <img src={getAvatarUrl(selectedUser)} alt={selectedUser.fullName} />
               </div>
             </div>
@@ -46,10 +46,10 @@ const ChatHeader = () => {
 
           {/* Close button */}
           <div className="flex items-center gap-2">
-             <button onClick={() => document.getElementById('clear_chat_modal').showModal()} className="hover:bg-base-200/50 p-2 rounded-full transition-colors duration-300" title="Clear Chat">
+             <button onClick={() => document.getElementById('clear_chat_modal').showModal()} className="hover:bg-base-200/60 backdrop-blur-md p-2 rounded-full transition-all duration-300 hover:scale-110" title="Clear Chat">
               <Trash2 className="size-5 text-base-content/70 hover:text-error" />
             </button>
-            <button onClick={() => setSelectedUser(null)} className="hover:bg-base-200/50 p-2 rounded-full transition-colors hover:rotate-90 duration-300">
+            <button onClick={() => setSelectedUser(null)} className="hover:bg-base-200/60 backdrop-blur-md p-2 rounded-full transition-all hover:rotate-90 duration-300 hover:scale-110">
               <X className="text-base-content/70" />
             </button>
           </div>

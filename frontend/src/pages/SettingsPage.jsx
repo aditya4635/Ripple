@@ -50,44 +50,66 @@ const SettingsPage = () => {
             <div className="max-w-lg mx-auto">
               {/* Mock Chat UI */}
               <div className="bg-base-100 rounded-xl shadow-sm overflow-hidden">
-                {/* Chat Header */}
-                <div className="px-4 py-3 border-b border-base-300 bg-base-100">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-content font-medium">
-                      J
-                    </div>
-                    <div>
-                      <h3 className="font-medium text-sm">John Doe</h3>
-                      <p className="text-xs text-base-content/70">Online</p>
+                {/* Chat Header - matches ChatHeader.jsx */}
+                <div className="p-2.5 glass-header">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="avatar">
+                        <div className="size-10 rounded-full border border-base-300 shadow-sm bg-primary flex items-center justify-center">
+                          <span className="text-primary-content font-medium">J</span>
+                        </div>
+                      </div>
+                      <div>
+                        <h3 className="font-medium text-base-content/90">John Doe</h3>
+                        <p className="text-sm text-base-content/70">Online</p>
+                      </div>
                     </div>
                   </div>
                 </div>
 
-                {/* Chat Messages */}
-                <div className="p-4 space-y-4 min-h-[200px] max-h-[200px] overflow-y-auto bg-base-100">
-                  {PREVIEW_MESSAGES.map((message) => (
-                    <div
-                      key={message.id}
-                      className={`flex ${message.isSent ? "justify-end" : "justify-start"}`}
-                    >
-                      <div
-                        className={`
-                          max-w-[80%] rounded-xl p-3 shadow-sm
-                          ${message.isSent ? "bg-primary text-primary-content" : "bg-base-200"}
-                        `}
-                      >
-                        <p className="text-sm">{message.content}</p>
-                        <p
-                          className={`
-                            text-[10px] mt-1.5
-                            ${message.isSent ? "text-primary-content/70" : "text-base-content/70"}
-                          `}
-                        >
-                          12:00 PM
-                        </p>
+                {/* Chat Messages - matches MessageBubble.jsx */}
+                <div className="p-4 space-y-4 min-h-[300px] max-h-[300px] overflow-y-auto bg-base-100">
+                  {/* Received message */}
+                  <div className="chat chat-start animate-slide-up mt-4">
+                    <div className="chat-image avatar">
+                      <div className="size-10 rounded-full border border-base-300 overflow-hidden bg-base-200 shadow-sm">
+                        <div className="w-full h-full bg-primary flex items-center justify-center text-primary-content font-medium">
+                          J
+                        </div>
                       </div>
                     </div>
-                  ))}
+                    <div className="chat-bubble bg-transparent p-0 shadow-none flex items-end gap-2">
+                      <div className="flex flex-col p-3 max-w-sm message-bubble-received">
+                        <p className="text-sm">Hey! How's it going?</p>
+                        <time className="text-[10px] text-base-content/50 mt-1">12:00 PM</time>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Sent message */}
+                  <div className="chat chat-end animate-slide-up mt-4">
+                    <div className="chat-image avatar">
+                      <div className="size-10 rounded-full border border-base-300 overflow-hidden bg-base-200 shadow-sm">
+                        <div className="w-full h-full bg-secondary flex items-center justify-center text-secondary-content font-medium">
+                          Y
+                        </div>
+                      </div>
+                    </div>
+                    <div className="chat-bubble bg-transparent p-0 shadow-none flex items-end gap-2">
+                      <div className="flex items-center gap-1 mb-1 shrink-0 self-end">
+                        <div className="flex flex-col items-end">
+                          <time className="text-[10px] text-base-content/50">12:02 PM</time>
+                          <svg className="w-3 h-3 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 13l4 4L23 7" />
+                          </svg>
+                        </div>
+                      </div>
+                      <div className="flex flex-col p-3 max-w-sm message-bubble-sent">
+                        <p className="text-sm">I'm doing great! Just working on some new features.</p>
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
                 {/* Chat Input */}

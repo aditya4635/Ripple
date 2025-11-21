@@ -31,8 +31,8 @@ const Sidebar = () => {
   if (isUsersLoading) return <SidebarSkeleton />;
 
   return (
-    <aside className="h-full w-20 lg:w-72 border-r border-base-300 flex flex-col transition-all duration-200 bg-base-100/50 backdrop-blur-sm">
-      <div className="border-b border-base-300 w-full p-5 glass-header">
+    <aside className="h-full w-20 lg:w-72 sidebar-glass flex flex-col transition-all duration-200">
+      <div className="border-b border-base-content/5 w-full p-5 glass-header">
         <div className="flex items-center gap-2">
           <Users className="size-6 text-primary" />
           <span className="font-medium hidden lg:block text-lg">Contacts</span>
@@ -57,16 +57,16 @@ const Sidebar = () => {
             key={user._id}
             onClick={() => handleUserSelect(user)}
             className={`
-              w-full p-3 flex items-center gap-3 rounded-xl transition-all duration-200
-              hover:bg-base-200/50 hover:scale-[1.02] active:scale-[0.98]
-              ${selectedUser?._id === user._id ? "bg-primary/10 ring-1 ring-primary/20 shadow-sm" : ""}
+              w-full p-3 flex items-center gap-3 rounded-smooth transition-all duration-300
+              hover:bg-base-200/60 hover:backdrop-blur-md hover:scale-[1.02] hover:shadow-md active:scale-[0.98]
+              ${selectedUser?._id === user._id ? "bg-primary/10 ring-2 ring-primary/30 shadow-glass backdrop-blur-md" : ""}
             `}
           >
             <div className="relative mx-auto lg:mx-0">
               <img
                 src={getAvatarUrl(user)}
                 alt={user.name}
-                className="size-12 object-cover rounded-full border border-base-300 shadow-sm"
+                className="size-12 object-cover rounded-full border-2 border-base-content/10 shadow-md"
               />
               {onlineUsers.includes(user._id) && (
                 <span

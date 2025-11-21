@@ -30,6 +30,15 @@ const userSchema = new mongoose.Schema(
     otpExpires: {
       type: Date,
     },
+    pendingEmail: {
+      type: String,
+    },
+    pendingEmailOTP: {
+      type: String,
+    },
+    pendingEmailOTPExpires: {
+      type: Date,
+    },
   },
   {
     timestamps: true, // Automatically adds createdAt and updatedAt

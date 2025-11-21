@@ -32,9 +32,7 @@ const ChatContainer = () => {
   } = useChatStore();
   const { authUser } = useAuthStore();
   const messageEndRef = useRef(null);
-  const [showImageViewer, setShowImageViewer] = useState(false);
-  const [viewerImage, setViewerImage] = useState("");
-  
+
   // Forwarding state
   const [isForwardModalOpen, setIsForwardModalOpen] = useState(false);
   const [messageToForward, setMessageToForward] = useState(null); // Can be single message or null if bulk
@@ -116,7 +114,7 @@ const ChatContainer = () => {
   }
 
   return (
-    <div className="flex-1 flex flex-col overflow-auto bg-base-100/40 backdrop-blur-sm relative">
+    <div className="flex-1 flex flex-col overflow-auto backdrop-blur-[2px] relative" style={{backgroundColor: 'hsl(var(--b1) / 0.7)'}}>
       {/* Selection Header Overlay */}
       {isSelectionMode ? (
         <div className="absolute top-0 left-0 right-0 z-20 bg-base-100 border-b border-base-300 p-2 px-4 flex items-center justify-between shadow-md animate-slide-down">
@@ -174,7 +172,7 @@ const ChatContainer = () => {
         })}
       </div>
 
-      <MessageInput />
+
 
       {/* Image Viewer Modal */}
       <ImageViewerModal
