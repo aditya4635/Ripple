@@ -106,13 +106,13 @@
 
   /* ===== MESSAGE BUBBLES - ENHANCED ===== */
   .message-bubble-sent {
-    @apply backdrop-blur-md text-primary-content rounded-3xl rounded-tr-md shadow-lg border;
-    background-color: hsl(var(--p) / 0.85);
-    border-color: hsl(var(--p) / 0.3);
+    @apply backdrop-blur-md text-base-content rounded-2xl shadow-lg border;
+    background-color: hsl(var(--b2) / 0.85);
+    border-color: hsl(var(--bc) / 0.15);
   }
 
   .message-bubble-received {
-    @apply backdrop-blur-md text-base-content rounded-3xl rounded-tl-md shadow-lg border;
+    @apply backdrop-blur-md text-base-content rounded-2xl shadow-lg border;
     background-color: hsl(var(--b2) / 0.85);
     border-color: hsl(var(--bc) / 0.15);
   }
