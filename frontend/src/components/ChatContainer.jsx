@@ -32,10 +32,11 @@ const ChatContainer = () => {
   } = useChatStore();
   const { authUser } = useAuthStore();
   const messageEndRef = useRef(null);
+  const [showImageViewer, setShowImageViewer] = useState(false);
+  const [viewerImage, setViewerImage] = useState("");
 
-  // Forwarding state
   const [isForwardModalOpen, setIsForwardModalOpen] = useState(false);
-  const [messageToForward, setMessageToForward] = useState(null); // Can be single message or null if bulk
+  const [messageToForward, setMessageToForward] = useState(null);
 
   const handleImageClick = (imageUrl) => {
     setViewerImage(imageUrl);
@@ -49,24 +50,19 @@ const ChatContainer = () => {
 
   const handleBulkForwardClick = () => {
     if (selectedMessages.length === 0) return;
-    setMessageToForward(null); // Indicates bulk forward
+    setMessageToForward(null);
     setIsForwardModalOpen(true);
   };
 
   const handleForwardMessage = async (userId) => {
     try {
       if (messageToForward) {
-        // Single message forward
         await sendMessage({
           text: messageToForward.text,
           image: messageToForward.image,
         }, userId);
       } else {
-        // Bulk forward
-        // We need to find the actual message objects for the selected IDs
         const messagesToForward = messages.filter(m => selectedMessages.includes(m._id));
-        // Send them sequentially or in parallel
-        // Parallel might be better but let's do sequential to keep order roughly
         for (const msg of messagesToForward) {
              await sendMessage({
                 text: msg.text,
@@ -115,7 +111,6 @@ const ChatContainer = () => {
 
   return (
     <div className="flex-1 flex flex-col overflow-auto backdrop-blur-[2px] relative" style={{backgroundColor: 'hsl(var(--b1) / 0.7)'}}>
-      {/* Selection Header Overlay */}
       {isSelectionMode ? (
         <div className="absolute top-0 left-0 right-0 z-20 bg-base-100 border-b border-base-300 p-2 px-4 flex items-center justify-between shadow-md animate-slide-down">
           <div className="flex items-center gap-3">
@@ -146,7 +141,7 @@ const ChatContainer = () => {
         <ChatHeader />
       )}
 
-      <div className="flex-1 overflow-y-auto p-4 custom-scrollbar pt-20"> {/* Added pt-20 to account for header */}
+      <div className="flex-1 overflow-y-auto p-4 custom-scrollbar pt-20">
         {messages.map((message, index) => {
           const isConsecutive = index > 0 && messages[index - 1].senderId === message.senderId;
           const isLastInGroup = index === messages.length - 1 || messages[index + 1].senderId !== message.senderId;
@@ -174,7 +169,8 @@ const ChatContainer = () => {
 
 
 
-      {/* Image Viewer Modal */}
+      <MessageInput />
+
       <ImageViewerModal
         isOpen={showImageViewer}
         onClose={() => setShowImageViewer(false)}
@@ -182,7 +178,8 @@ const ChatContainer = () => {
         userName={selectedUser.fullName}
       />
       
-      {/* Forward Message Modal */}
+
+      
       <ForwardMessageModal
         isOpen={isForwardModalOpen}
         onClose={() => setIsForwardModalOpen(false)}
