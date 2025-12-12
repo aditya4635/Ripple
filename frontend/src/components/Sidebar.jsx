@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { useChatStore } from "../store/useChatStore";
 import { useAuthStore } from "../store/useAuthStore";
-import { Users } from "lucide-react";
+import { useAIChatStore } from "../store/useAIChatStore";
+import { Users, Bot } from "lucide-react";
 import { getAvatarUrl } from "../lib/avatarUtils";
 import SidebarSkeleton from "./skeletons/SidebarSkeleton";
 
@@ -9,6 +10,7 @@ const Sidebar = () => {
   const { getUsers, users, selectedUser, setSelectedUser, isUsersLoading, subscribeToUnreadMessages, unsubscribeFromUnreadMessages, markMessagesAsRead } = useChatStore();
 
   const { onlineUsers } = useAuthStore();
+  const { isAISelected, setIsAISelected } = useAIChatStore();
   const [showOnlineOnly, setShowOnlineOnly] = useState(false);
 
   useEffect(() => {
@@ -18,6 +20,7 @@ const Sidebar = () => {
   }, [getUsers, subscribeToUnreadMessages, unsubscribeFromUnreadMessages]);
 
   const handleUserSelect = (user) => {
+    setIsAISelected(false);
     setSelectedUser(user);
     if (user.unreadCount > 0) {
       markMessagesAsRead(user._id);
@@ -52,6 +55,32 @@ const Sidebar = () => {
       </div>
 
       <div className="overflow-y-auto w-full py-3 px-2 space-y-1 custom-scrollbar">
+        {/* AI Chat Button */}
+        <button
+          onClick={() => {
+            setSelectedUser(null);
+            setIsAISelected(true);
+          }}
+          className={`
+            w-full p-3 flex items-center gap-3 rounded-smooth transition-all duration-300
+            hover:bg-base-200/60 hover:backdrop-blur-md hover:scale-[1.02] hover:shadow-md active:scale-[0.98]
+            ${isAISelected ? "bg-primary/10 ring-2 ring-primary/30 shadow-glass backdrop-blur-md" : ""}
+          `}
+        >
+          <div className="relative mx-auto lg:mx-0">
+            <div className="size-12 rounded-full bg-primary/10 flex items-center justify-center border-2 border-base-content/10 shadow-md">
+              <Bot className="size-6 text-primary" />
+            </div>
+          </div>
+
+          <div className="hidden lg:block text-left min-w-0 flex-1">
+            <div className="font-medium truncate text-sm text-base-content/90">AI Assistant</div>
+            <div className="text-xs text-base-content/60">Always helpful</div>
+          </div>
+        </button>
+
+        <div className="divider my-1 px-3 opacity-50"></div>
+
         {filteredUsers.map((user) => (
           <button
             key={user._id}
