@@ -14,7 +14,14 @@ export const chatWithAI = async (req, res) => {
     }
 
     const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
+    const model = genAI.getGenerativeModel({ 
+      model: "gemini-flash-latest",
+      tools: [
+        {
+          googleSearch: {},
+        },
+      ],
+    });
 
     const result = await model.generateContent(message);
     const response = await result.response;
