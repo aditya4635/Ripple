@@ -27,7 +27,13 @@ const App = () => {
 
   useEffect(() => {
     checkAuth();
-  }, [checkAuth]);
+    // Apply theme to document
+    if (theme === "dark") {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+  }, [checkAuth, theme]);
 
   console.log({ authUser });
 
@@ -40,7 +46,7 @@ const App = () => {
 
   return (
     <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID || ""}>
-      <div data-theme={theme} className="font-sans text-base-content bg-base-100 transition-colors duration-300">
+      <div className="font-sans text-base-content bg-base-100 transition-colors duration-300">
         <Navbar />
 
         <AnimatePresence mode="wait">

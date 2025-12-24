@@ -5,6 +5,43 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    /* Light Mode - Professional & Clean */
+    --p: 55% 0.25 260;    /* Primary: #4f46e5 (Indigo 600) approx */
+    --s: 65% 0.20 280;    /* Secondary: #818cf8 (Indigo 400) approx */
+    --a: 70% 0.15 340;    /* Accent: Pinkish */
+    --n: 30% 0.05 260;    /* Neutral */
+    
+    --b1: 99% 0.005 260;  /* Base 100: Almost White */
+    --b2: 95% 0.01 260;   /* Base 200: Light Gray */
+    --b3: 90% 0.02 260;   /* Base 300: Gray */
+    --bc: 25% 0.05 260;   /* Base Content: Dark Gray Text */
+  }
+
+  .dark {
+    /* Dark Mode - True Black/Grey & Premium */
+    --p: 60% 0.20 260;    /* Primary: Keep Indigo for contrast */
+    --s: 70% 0.15 280;    /* Secondary */
+    --a: 75% 0.15 340;    /* Accent */
+    --n: 20% 0 0;         /* Neutral: Pure Dark Grey */
+    
+    --b1: 10% 0 0;        /* Base 100: Very Dark Grey / Almost Black */
+    --b2: 5% 0 0;         /* Base 200: Deep Black/Grey (Darker than bg for contrast or slightly lighter?) 
+                             Let's make b2 lighter than b1 for cards usually, or darker for distinct sections.
+                             Standard material: Surface is lighter. 
+                             Let's try: b1=10% (Main Bg), b2=15% (Cards/Sidebar)
+                             Wait, user said "really black". 
+                             Let's go: b1 (Bg) = 5% 0 0 (Near Black)
+                             b2 (Cards) = 10% 0 0 (Dark Grey)
+                          */
+    --b1: 13% 0 0;        /* Base 100: Soft Dark Grey (Not Pitch Black) */
+    --b2: 19% 0 0;        /* Base 200: Lighter Dark Grey (Cards/Sidebar) */
+    --b3: 25% 0 0;        /* Base 300: Medium Grey (Borders/Inputs) */
+    --bc: 90% 0 0;        /* Base Content: Light Grey/White */
+  }
+}
+
+@layer base {
   * {
     @apply transition-colors duration-200;
     cursor: default;
@@ -76,8 +113,8 @@
   /* Glass Effects - Existing Enhanced */
   .glass-effect {
     @apply backdrop-blur-md border-b sticky top-0 z-50 text-base-content;
-    background-color: hsl(var(--b1) / 0.98);
-    border-bottom-color: hsl(var(--bc) / 0.15);
+    background-color: oklch(var(--b1) / 0.98);
+    border-bottom-color: oklch(var(--bc) / 0.15);
   }
 
   .glass-input {
@@ -92,7 +129,7 @@
   /* Sidebar Glass - Mid-tone */
   .sidebar-glass {
     @apply backdrop-blur-md text-base-content relative z-20;
-    background-color: hsl(var(--b1) / 0.92);
+    background-color: oklch(var(--b1) / 0.92);
     box-shadow: 4px 0 24px 0 rgba(0, 0, 0, 0.15);
   }
 
@@ -100,21 +137,21 @@
   /* Header Glass - Darker */
   .glass-header {
     @apply backdrop-blur-md sticky top-0 z-50 text-base-content;
-    background-color: hsl(var(--b1) / 0.98);
+    background-color: oklch(var(--b1) / 0.98);
     box-shadow: 0 4px 24px 0 rgba(0, 0, 0, 0.15);
   }
 
   /* ===== MESSAGE BUBBLES - ENHANCED ===== */
+  /* ===== MESSAGE BUBBLES - ENHANCED ===== */
   .message-bubble-sent {
-    @apply backdrop-blur-md text-base-content rounded-2xl shadow-lg border;
-    background-color: hsl(var(--b2) / 0.85);
-    border-color: hsl(var(--bc) / 0.15);
+    @apply backdrop-blur-md text-base-content rounded-2xl shadow-sm;
+    background-color: oklch(var(--b3) / 0.6); /* Slightly lighter/different grey */
+    /* strong separation from background */
   }
 
   .message-bubble-received {
-    @apply backdrop-blur-md text-base-content rounded-2xl shadow-lg border;
-    background-color: hsl(var(--b2) / 0.85);
-    border-color: hsl(var(--bc) / 0.15);
+    @apply backdrop-blur-md text-base-content rounded-2xl shadow-sm;
+    background-color: oklch(var(--b2) / 0.6); /* Standard secondary background */
   }
 
   /* ===== HOVER & INTERACTION EFFECTS ===== */

@@ -1,10 +1,12 @@
 import { Link } from "react-router-dom";
 import { useAuthStore } from "../store/useAuthStore";
-import { LogOut, MessageSquare, Settings, User } from "lucide-react";
+import { useThemeStore } from "../store/useThemeStore";
+import { LogOut, MessageSquare, Settings, User, Sun, Moon } from "lucide-react";
 import RainbowHover from "./RainbowHover";
 
 const Navbar = () => {
   const { logout, authUser } = useAuthStore();
+  const { theme, toggleTheme } = useThemeStore();
 
   return (
     <header
@@ -23,6 +25,20 @@ const Navbar = () => {
           </div>
 
           <div className="flex items-center gap-2">
+            <button
+              className="btn btn-sm btn-ghost gap-2 hover:bg-primary/10 smooth-transition ml-2"
+              onClick={toggleTheme}
+            >
+              {theme === "dark" ? (
+                <Sun className="size-5" />
+              ) : (
+                <Moon className="size-5" />
+              )}
+              <span className="hidden sm:inline font-medium">
+                {theme === "dark" ? "Light" : "Dark"}
+              </span>
+            </button>
+
             <Link
               to={"/settings"}
               className="btn btn-sm btn-ghost gap-2 hover:bg-primary/10 smooth-transition"
