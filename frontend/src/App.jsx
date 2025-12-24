@@ -18,9 +18,13 @@ import { AnimatePresence } from "framer-motion";
 import PageTransition from "./components/PageTransition";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 
+import { useVideoCallStore } from "./store/useVideoCallStore";
+import VideoCall from "./components/VideoCall";
+
 const App = () => {
-  const { authUser, checkAuth, isCheckingAuth, onlineUsers } = useAuthStore();
+  const { authUser, checkAuth, isCheckingAuth, onlineUsers, socket } = useAuthStore();
   const { theme } = useThemeStore();
+  const { isCalling, isIncomingCall, setIncomingCall, setCallerInfo } = useVideoCallStore();
   const location = useLocation();
 
   console.log({ onlineUsers });
@@ -35,6 +39,20 @@ const App = () => {
     }
   }, [checkAuth, theme]);
 
+  // Listen for incoming calls
+  useEffect(() => {
+    if (!socket) return;
+    
+    socket.on("callUser", ({ from, signal, name }) => {
+      setIncomingCall(true);
+      setCallerInfo(name, from, signal);
+    });
+    
+    return () => {
+      socket.off("callUser");
+    };
+  }, [socket, setIncomingCall, setCallerInfo]);
+
   console.log({ authUser });
 
   if (isCheckingAuth && !authUser)
@@ -48,6 +66,8 @@ const App = () => {
     <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID || ""}>
       <div className="font-sans text-base-content bg-base-100 transition-colors duration-300">
         <Navbar />
+        
+        {(isCalling || isIncomingCall) && <VideoCall />}
 
         <AnimatePresence mode="wait">
           <Routes location={location} key={location.pathname}>

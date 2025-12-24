@@ -1,6 +1,7 @@
 import { useChatStore } from "../store/useChatStore";
-import { X, Trash2 } from "lucide-react";
+import { X, Trash2, Video } from "lucide-react";
 import { useAuthStore } from "../store/useAuthStore";
+import { useVideoCallStore } from "../store/useVideoCallStore";
 import { getAvatarUrl } from "../lib/avatarUtils";
 import { useState } from "react";
 import UserProfileModal from "./UserProfileModal";
@@ -44,8 +45,20 @@ const ChatHeader = () => {
             </div>
           </div>
 
-          {/* Close button */}
+          {/* Actions */}
           <div className="flex items-center gap-2">
+             <button 
+               onClick={() => {
+                   // Start Call Logic
+                   useVideoCallStore.getState().setCalling(true);
+                   // We need to set the target user ID in the store to know who we are calling
+                   // For now, let's assume App.jsx or the component will handle the socket emit based on 'selectedUser' from chat store
+               }} 
+               className="hover:bg-primary/10 p-2 rounded-full transition-all duration-300 hover:scale-110" 
+               title="Video Call"
+             >
+               <Video className="size-5 text-base-content/70 hover:text-primary" />
+             </button>
              <button onClick={() => document.getElementById('clear_chat_modal').showModal()} className="hover:bg-base-200/60 backdrop-blur-md p-2 rounded-full transition-all duration-300 hover:scale-110" title="Clear Chat">
               <Trash2 className="size-5 text-base-content/70 hover:text-error" />
             </button>

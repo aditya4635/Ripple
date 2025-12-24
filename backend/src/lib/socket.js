@@ -43,6 +43,35 @@ io.on("connection", (socket) => {
     }
   });
 
+  // WebRTC Signaling
+  socket.on("callUser", ({ userToCall, signalData, from, name }) => {
+    const receiverSocketId = getReceiverSocketId(userToCall);
+    if (receiverSocketId) {
+      io.to(receiverSocketId).emit("callUser", { signal: signalData, from, name });
+    }
+  });
+
+  socket.on("answerCall", ({ to, signal }) => {
+    const receiverSocketId = getReceiverSocketId(to);
+    if (receiverSocketId) {
+      io.to(receiverSocketId).emit("callAccepted", signal);
+    }
+  });
+
+  socket.on("ice-candidate", ({ to, candidate }) => {
+    const receiverSocketId = getReceiverSocketId(to);
+    if (receiverSocketId) {
+      io.to(receiverSocketId).emit("ice-candidate", { candidate, from: userId });
+    }
+  });
+
+  socket.on("endCall", ({ to }) => {
+    const receiverSocketId = getReceiverSocketId(to);
+    if (receiverSocketId) {
+      io.to(receiverSocketId).emit("callEnded");
+    }
+  });
+
   socket.on("disconnect", () => {
     console.log("A user disconnected", socket.id);
     delete userSocketMap[userId];
