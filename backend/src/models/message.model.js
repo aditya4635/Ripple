@@ -22,17 +22,24 @@ const messageSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
-    deletedBy: [{
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-    }],
+    deletedBy: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
     isDeleted: {
       type: Boolean,
       default: false,
     },
   },
-  { timestamps: true }
+  {
+    timestamps: true,
+  }
 );
+
+messageSchema.index({ senderId: 1, receiverId: 1 });
+messageSchema.index({ createdAt: -1 });
 
 const Message = mongoose.model("Message", messageSchema);
 

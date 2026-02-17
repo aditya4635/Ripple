@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { useAuthStore } from "../store/useAuthStore";
+import { useAuthStore } from "../stores/authStore";
 import { Camera, Mail, User, Trash2, Edit2, Check, X } from "lucide-react";
-import { getAvatarUrl } from "../lib/avatarUtils";
-import { validateImageFile, compressImage, fileToBase64 } from "../lib/imageUtils";
+import { validateImageFile, compressImage, fileToBase64 } from "../utils/imageUtils";
+import Avatar from "../components/shared/Avatar";
 import toast from "react-hot-toast";
 
 const ProfilePage = () => {
@@ -10,13 +10,11 @@ const ProfilePage = () => {
   const [selectedImg, setSelectedImg] = useState(null);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   
-  // Edit mode states
   const [isEditingName, setIsEditingName] = useState(false);
   const [isEditingEmail, setIsEditingEmail] = useState(false);
   const [editedFullName, setEditedFullName] = useState("");
   const [editedEmail, setEditedEmail] = useState("");
   
-  // Email OTP modal states
   const [showEmailOTPModal, setShowEmailOTPModal] = useState(false);
   const [emailOTP, setEmailOTP] = useState("");
 
@@ -24,18 +22,16 @@ const ProfilePage = () => {
     const file = e.target.files[0];
     if (!file) return;
 
-    // Client-side validation
     const validation = validateImageFile(file);
     if (!validation.valid) {
       toast.error(validation.error);
-      e.target.value = ''; // Clear file input
+      e.target.value = '';
       return;
     }
 
     setIsUploadingImage(true);
     let uploadAborted = false;
     
-    // Set upload timeout (30 seconds)
     const uploadTimeout = setTimeout(() => {
       uploadAborted = true;
       toast.dismiss('compress');
@@ -43,14 +39,12 @@ const ProfilePage = () => {
       toast.error('Upload timed out. Please try again with a smaller image.');
       setIsUploadingImage(false);
       setSelectedImg(null);
-    }, 30000); // 30 seconds
+    }, 30000);
     
     try {
-      // Show preview immediately
       const previewUrl = URL.createObjectURL(file);
       setSelectedImg(previewUrl);
 
-      // Compress image if larger than 1MB
       let base64Image;
       const fileSizeInMB = file.size / (1024 * 1024);
       
@@ -62,22 +56,17 @@ const ProfilePage = () => {
         base64Image = await fileToBase64(file);
       }
 
-      // Check if upload was aborted
       if (uploadAborted) {
         URL.revokeObjectURL(previewUrl);
         return;
       }
 
-      // Upload to server with timeout check
       toast.loading('Uploading...', { id: 'upload' });
       const success = await updateProfile({ profilePic: base64Image });
       
-      // Clear timeout if upload completes
       clearTimeout(uploadTimeout);
-      
       toast.dismiss('upload');
       
-      // Check again if upload was aborted during the request
       if (uploadAborted) {
         URL.revokeObjectURL(previewUrl);
         return;
@@ -86,17 +75,13 @@ const ProfilePage = () => {
       if (success) {
         toast.success("Profile picture updated successfully!");
       } else {
-        // Revert to old image on failure
         setSelectedImg(null);
         toast.error("Failed to update profile picture");
       }
       
-      // Clean up preview URL
       URL.revokeObjectURL(previewUrl);
     } catch (error) {
-      // Clear timeout on error
       clearTimeout(uploadTimeout);
-      
       console.error('Image upload error:', error);
       setSelectedImg(null);
       
@@ -109,7 +94,7 @@ const ProfilePage = () => {
       if (!uploadAborted) {
         setIsUploadingImage(false);
       }
-      e.target.value = ''; // Clear file input for re-upload
+      e.target.value = '';
     }
   };
 
@@ -124,7 +109,7 @@ const ProfilePage = () => {
         } else {
           toast.error("Failed to remove profile picture");
         }
-      } catch (error) {
+      } catch {
         toast.error("Failed to remove profile picture");
       } finally {
         setIsUploadingImage(false);
@@ -202,20 +187,18 @@ const ProfilePage = () => {
             <p className="mt-2">Your profile information</p>
           </div>
 
-          {/* avatar upload section */}
-
           {authUser && (
             <div className="flex flex-col items-center gap-4">
               <div className="relative">
-                <img
-                  src={selectedImg || getAvatarUrl(authUser)}
-                  alt="Profile"
-                  className="size-32 rounded-full object-cover border-4 "
-                  onError={(e) => {
-                    // Fallback if SVG fails to load
-                    e.target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Crect width='100' height='100' fill='%234ECDC4'/%3E%3Ctext x='50' y='50' font-size='40' fill='white' text-anchor='middle' dominant-baseline='central' font-family='Arial'%3E?%3C/text%3E%3C/svg%3E";
-                  }}
-                />
+                {selectedImg ? (
+                  <img
+                    src={selectedImg}
+                    alt="Profile preview"
+                    className="size-32 rounded-full object-cover border-4"
+                  />
+                ) : (
+                  <Avatar user={authUser} size="2xl" />
+                )}
                 <label
                   htmlFor="avatar-upload"
                   className={`
@@ -261,9 +244,7 @@ const ProfilePage = () => {
             </div>
           )}
 
-
           <div className="space-y-6">
-            {/* Full Name Section */}
             <div className="space-y-1.5">
               <div className="text-sm text-zinc-400 flex items-center justify-between">
                 <div className="flex items-center gap-2">
@@ -312,7 +293,6 @@ const ProfilePage = () => {
               )}
             </div>
 
-            {/* Email Section */}
             <div className="space-y-1.5">
               <div className="text-sm text-zinc-400 flex items-center justify-between">
                 <div className="flex items-center gap-2">
@@ -400,7 +380,6 @@ const ProfilePage = () => {
         </div>
       </div>
 
-      {/* Email OTP Modal */}
       {showEmailOTPModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
           <div className="bg-base-100 rounded-xl p-6 w-full max-w-md mx-4 shadow-xl">
