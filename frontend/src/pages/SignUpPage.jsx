@@ -1,12 +1,12 @@
 import { useState, useEffect } from "react";
-import { useAuthStore } from "../store/useAuthStore";
+import { useAuthStore } from "../stores/authStore";
 import { Eye, EyeOff, Loader2, Lock, Mail, MessageSquare, User } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
-import AuthImagePattern from "../components/AuthImagePattern";
+import AuthImagePattern from "../components/shared/AuthImagePattern";
 import toast from "react-hot-toast";
-import MouseFollowerSprinkles from "../components/MouseFollowerLight";
-import AuthErrorAlert from "../components/AuthErrorAlert";
-import GoogleSignInButton from "../components/GoogleSignInButton";
+import MouseFollowerSprinkles from "../components/shared/MouseFollowerLight";
+import AuthErrorAlert from "../components/shared/AuthErrorAlert";
+import GoogleSignInButton from "../components/shared/GoogleSignInButton";
 
 const SignUpPage = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -55,10 +55,8 @@ const SignUpPage = () => {
     <>
     <MouseFollowerSprinkles />
     <div className="min-h-screen grid lg:grid-cols-2">
-      {/* left side */}
       <div className="flex flex-col justify-center items-center p-6 sm:p-12 bg-base-100">
         <div className="w-full max-w-md space-y-8 bg-base-200/50 px-8 py-10 rounded-3xl shadow-xl border border-base-300 backdrop-blur-sm">
-          {/* LOGO */}
           <div className="text-center mb-8">
             <div className="flex flex-col items-center gap-2 group">
               <div
@@ -85,7 +83,7 @@ const SignUpPage = () => {
                 </div>
                 <input
                   type="text"
-                  className={`input input-bordered w-full pl-10 bg-base-100 focus:ring-2 focus:ring-primary/20 transition-all`}
+                  className="input input-bordered w-full pl-10 bg-base-100 focus:ring-2 focus:ring-primary/20 transition-all"
                   placeholder="Your Full Name"
                   value={formData.fullName}
                   onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
@@ -103,7 +101,7 @@ const SignUpPage = () => {
                 </div>
                 <input
                   type="email"
-                  className={`input input-bordered w-full pl-10 bg-base-100 focus:ring-2 focus:ring-primary/20 transition-all`}
+                  className="input input-bordered w-full pl-10 bg-base-100 focus:ring-2 focus:ring-primary/20 transition-all"
                   placeholder="Your Email"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
@@ -121,7 +119,7 @@ const SignUpPage = () => {
                 </div>
                 <input
                   type={showPassword ? "text" : "password"}
-                  className={`input input-bordered w-full pl-10 bg-base-100 focus:ring-2 focus:ring-primary/20 transition-all`}
+                  className="input input-bordered w-full pl-10 bg-base-100 focus:ring-2 focus:ring-primary/20 transition-all"
                   placeholder="Your Password"
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
@@ -152,10 +150,8 @@ const SignUpPage = () => {
             </button>
           </form>
 
-          {/* Divider */}
           <div className="divider text-base-content/60 my-6">OR CONTINUE WITH</div>
 
-          {/* Google Sign Up */}
           <div className="space-y-3">
             <GoogleSignInButton onSuccess={handleGoogleSuccess} mode="signup" />
             <p className="text-xs text-center text-base-content/60">
@@ -173,9 +169,6 @@ const SignUpPage = () => {
           </div>
         </div>
       </div>
-      
-
-      {/* right side */}
 
       <AuthImagePattern
         title="Join our community"

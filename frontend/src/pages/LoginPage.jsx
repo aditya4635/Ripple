@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
-import { useAuthStore } from "../store/useAuthStore";
-import AuthImagePattern from "../components/AuthImagePattern";
+import { useAuthStore } from "../stores/authStore";
+import AuthImagePattern from "../components/shared/AuthImagePattern";
 import { Link, useNavigate } from "react-router-dom";
 import { Eye, EyeOff, Loader2, Lock, Mail, MessageSquare } from "lucide-react";
-import MouseFollowerLight from "../components/MouseFollowerLight";
-import AuthErrorAlert from "../components/AuthErrorAlert";
-import GoogleSignInButton from "../components/GoogleSignInButton";
+import MouseFollowerLight from "../components/shared/MouseFollowerLight";
+import AuthErrorAlert from "../components/shared/AuthErrorAlert";
+import GoogleSignInButton from "../components/shared/GoogleSignInButton";
 
 const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -62,7 +62,7 @@ const LoginPage = () => {
                   </div>
                   <input
                     type="email"
-                    className={`input input-bordered w-full pl-10 bg-base-100 focus:ring-2 focus:ring-primary/20 transition-all`}
+                    className="input input-bordered w-full pl-10 bg-base-100 focus:ring-2 focus:ring-primary/20 transition-all"
                     placeholder="you@example.com"
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
@@ -80,7 +80,7 @@ const LoginPage = () => {
                   </div>
                   <input
                     type={showPassword ? "text" : "password"}
-                    className={`input input-bordered w-full pl-10 bg-base-100 focus:ring-2 focus:ring-primary/20 transition-all`}
+                    className="input input-bordered w-full pl-10 bg-base-100 focus:ring-2 focus:ring-primary/20 transition-all"
                     placeholder="••••••••"
                     value={formData.password}
                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}

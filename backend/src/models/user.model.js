@@ -6,10 +6,13 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
       unique: true,
+      lowercase: true,
+      trim: true,
     },
     fullName: {
       type: String,
       required: true,
+      trim: true,
     },
     password: {
       type: String,
@@ -24,12 +27,6 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
-    otp: {
-      type: String,
-    },
-    otpExpires: {
-      type: Date,
-    },
     pendingEmail: {
       type: String,
     },
@@ -41,9 +38,11 @@ const userSchema = new mongoose.Schema(
     },
   },
   {
-    timestamps: true, // Automatically adds createdAt and updatedAt
+    timestamps: true,
   }
 );
+
+userSchema.index({ email: 1 });
 
 const User = mongoose.model("User", userSchema);
 

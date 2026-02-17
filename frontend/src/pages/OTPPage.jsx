@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
-import { useAuthStore } from "../store/useAuthStore";
+import { useAuthStore } from "../stores/authStore";
 import { useNavigate, useLocation } from "react-router-dom";
-import AuthImagePattern from "../components/AuthImagePattern";
+import AuthImagePattern from "../components/shared/AuthImagePattern";
 import { Loader2, Mail, MessageSquare, RefreshCw } from "lucide-react";
-import MouseFollowerLight from "../components/MouseFollowerLight";
-import AuthErrorAlert from "../components/AuthErrorAlert";
+import MouseFollowerLight from "../components/shared/MouseFollowerLight";
+import AuthErrorAlert from "../components/shared/AuthErrorAlert";
 
 const OTPPage = () => {
   const [otp, setOtp] = useState("");
@@ -22,7 +22,6 @@ const OTPPage = () => {
     }
   }, [clearAuthError, email, navigate]);
 
-  // Countdown timer
   useEffect(() => {
     if (countdown > 0 && !canResend) {
       const timer = setTimeout(() => setCountdown(countdown - 1), 1000);

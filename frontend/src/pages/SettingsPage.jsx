@@ -1,4 +1,4 @@
-import { useThemeStore } from "../store/useThemeStore";
+import { useThemeStore } from "../stores/themeStore";
 import { Send, Image } from "lucide-react";
 
 const PREVIEW_MESSAGES = [
@@ -7,7 +7,9 @@ const PREVIEW_MESSAGES = [
 ];
 
 const SettingsPage = () => {
-  const { theme, toggleTheme } = useThemeStore();
+  const { theme, setTheme } = useThemeStore();
+
+  const toggleTheme = () => setTheme(theme === "dark" ? "light" : "dark");
 
   return (
     <div className="h-screen container mx-auto px-4 pt-20 max-w-5xl">
@@ -32,14 +34,11 @@ const SettingsPage = () => {
           </div>
         </div>
 
-        {/* Preview Section */}
         <h3 className="text-lg font-semibold mb-3">Preview</h3>
         <div className="rounded-xl border border-base-300 overflow-hidden bg-base-100 shadow-lg">
           <div className="p-4 bg-base-200">
             <div className="max-w-lg mx-auto">
-              {/* Mock Chat UI */}
               <div className="bg-base-100 rounded-xl shadow-sm overflow-hidden">
-                {/* Chat Header - matches ChatHeader.jsx */}
                 <div className="p-2.5 glass-header">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
@@ -56,9 +55,7 @@ const SettingsPage = () => {
                   </div>
                 </div>
 
-                {/* Chat Messages - matches MessageBubble.jsx */}
                 <div className="p-4 space-y-4 min-h-[300px] max-h-[300px] overflow-y-auto bg-base-100">
-                  {/* Received message */}
                   <div className="chat chat-start animate-slide-up mt-4">
                     <div className="chat-image avatar">
                       <div className="size-10 rounded-full border border-base-300 overflow-hidden bg-base-200 shadow-sm">
@@ -75,7 +72,6 @@ const SettingsPage = () => {
                     </div>
                   </div>
 
-                  {/* Sent message */}
                   <div className="chat chat-end animate-slide-up mt-4">
                     <div className="chat-image avatar">
                       <div className="size-10 rounded-full border border-base-300 overflow-hidden bg-base-200 shadow-sm">
@@ -101,7 +97,6 @@ const SettingsPage = () => {
                   </div>
                 </div>
 
-                {/* Chat Input */}
                 <div className="p-4 border-t border-base-300 bg-base-100">
                   <div className="flex gap-2">
                     <input

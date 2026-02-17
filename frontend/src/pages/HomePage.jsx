@@ -1,14 +1,12 @@
-import { useChatStore } from "../store/useChatStore";
-import { useAIChatStore } from "../store/useAIChatStore";
+import { useChatStore } from "../stores/chatStore";
 
-import Sidebar from "../components/Sidebar";
-import NoChatSelected from "../components/NoChatSelected";
-import ChatContainer from "../components/ChatContainer";
-import AIChatContainer from "../components/AIChatContainer";
+import Sidebar from "../components/chat/Sidebar";
+import NoChatSelected from "../components/chat/NoChatSelected";
+import ChatContainer from "../components/chat/ChatContainer";
+import AIChatContainer from "../components/chat/AIChatContainer";
 
 const HomePage = () => {
-  const { selectedUser } = useChatStore();
-  const { isAISelected } = useAIChatStore();
+  const { selectedUser, isAIChatSelected } = useChatStore();
 
   return (
     <div className="h-screen bg-base-200">
@@ -17,7 +15,7 @@ const HomePage = () => {
           <div className="flex h-full overflow-hidden">
             <Sidebar />
 
-            {!selectedUser && !isAISelected ? <NoChatSelected /> : isAISelected ? <AIChatContainer /> : <ChatContainer />}
+            {!selectedUser && !isAIChatSelected ? <NoChatSelected /> : isAIChatSelected ? <AIChatContainer /> : <ChatContainer />}
           </div>
         </div>
       </div>
